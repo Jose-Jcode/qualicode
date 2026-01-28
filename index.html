@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - QualiCode</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-left">
+                <div class="login-brand">
+                    <div class="brand-icon">
+                        <i class="bi bi-kanban"></i>
+                    </div>
+                    <h1 class="brand-title">QualiCode</h1>
+                    <p class="brand-subtitle">Sistema de Gerenciamento</p>
+                </div>
+                
+                <div class="login-features">
+                    <div class="feature-item">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Segurança Avançada</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Performance</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Analytics</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="login-right">
+                <div class="login-form-container">
+                    <h2 class="form-title">Bem-vindo de volta</h2>
+                    <p class="form-subtitle">Faça login para acessar o sistema</p>
+                    
+                    <form id="loginForm" class="login-form">
+                        <div class="form-group">
+                            <label for="loginEmail" class="form-label">
+                                <i class="bi bi-envelope"></i>
+                                Email
+                            </label>
+                            <input type="email" class="form-control" id="loginEmail" placeholder="seu@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="loginPassword" class="form-label">
+                                <i class="bi bi-lock"></i>
+                                Senha
+                            </label>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="Sua senha" required>
+                        </div>
+                        
+                        <div class="form-options">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Lembrar-me
+                                </label>
+                            </div>
+                            <a href="#" class="forgot-password">Esqueceu a senha?</a>
+                        </div>
+                        
+                        <button type="submit" class="btn-login">
+                            <span>Entrar</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="login-footer">
+                        <p>© 2024 QualiCode. Todos os direitos reservados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Application (Hidden by default) -->
+    <div id="mainApp" style="display: none;">
+        <div class="d-flex">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h5><i class="bi bi-kanban me-2"></i>QualiCode</h5>
+                    <!-- Foto de Perfil -->
+                    <div class="profile-section">
+                        <div class="profile-avatar" id="sidebarProfileAvatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-name" id="sidebarProfileName">Carregando...</div>
+                            <small class="profile-email" id="sidebarProfileEmail">carregando@email.com</small>
+                        </div>
+                    </div>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" onclick="showPage('activities')" id="activitiesLink">
+                        <i class="bi bi-list-task"></i>
+                        Atividades
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('dashboard')" id="dashboardLink">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('projects')" id="projectsLink">
+                        <i class="bi bi-folder"></i>
+                        Projetos
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('users')" id="usersLink">
+                        <i class="bi bi-people-fill"></i>
+                        Usuários
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('settings')" id="settingsLink">
+                        <i class="bi bi-gear-fill"></i>
+                        Configurações
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('profile')" id="profileLink">
+                        <i class="bi bi-person-circle"></i>
+                        Meu Perfil
+                    </a>
+                    <div class="sidebar-divider"></div>
+                    <a href="#" class="nav-item logout-item" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i>
+                        Sair
+                    </a>
+                </nav>
+            </div>
+        
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Activities Page -->
+            <div id="activitiesPage" class="page-content">
+                <div class="page-header p-3 bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-task"></i> Central de Atividades
+                        </h5>
+                        <div>
+                            <div class="dropdown d-inline-block me-2">
+                                <button class="btn btn-outline-secondary" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-funnel-fill"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown" style="min-width: 250px;">
+                                    <li><h6 class="dropdown-header">Filtrar Setores</h6></li>
+                                    <li>
+                                        <div class="px-3 py-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAllSectorsFilter" checked>
+                                                <label class="form-check-label" for="selectAllSectorsFilter">
+                                                    <strong>Ver Todos</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li id="sectorFilterItems">
+                                        <!-- Checkboxes de setores serão inseridos aqui -->
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown d-inline-block">
+                                <button class="btn btn-outline-secondary" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear-fill"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+                                    <li><h6 class="dropdown-header">Ações Gerais</h6></li>
+                                    <li><a class="dropdown-item" href="#" onclick="openSectorModal()">
+                                        <i class="bi bi-building me-2"></i>Cadastrar Setor
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="openModal()">
+                                        <i class="bi bi-plus-lg me-2"></i>Nova Atividade
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Visualização</h6></li>
+                                    <li><a class="dropdown-item" href="#" onclick="expandAllSectors()">
+                                        <i class="bi bi-chevron-double-down me-2"></i>Expandir Todos
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="collapseAllSectors()">
+                                        <i class="bi bi-chevron-double-up me-2"></i>Recolher Todos
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <!-- Sectors Tables -->
+                    <div id="sectorsTables">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page-content" style="display: none;">
+                <div class="page-header p-3 bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </h5>
+                        <div>
+                            <button class="btn btn-outline-secondary" onclick="refreshDashboard()">
+                                <i class="bi bi-arrow-clockwise"></i> Atualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filtros do Dashboard -->
+                <div class="p-3 bg-light border-bottom">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <label for="dashboardStatusFilter" class="form-label">Status</label>
+                            <select class="form-select form-select-sm" id="dashboardStatusFilter">
+                                <option value="">Todos</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dashboardSectorFilter" class="form-label">Setor</label>
+                            <select class="form-select form-select-sm" id="dashboardSectorFilter">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dashboardMonthFilter" class="form-label">Mês</label>
+                            <select class="form-select form-select-sm" id="dashboardMonthFilter">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dashboardYearFilter" class="form-label">Ano</label>
+                            <select class="form-select form-select-sm" id="dashboardYearFilter">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-primary btn-sm" onclick="applyDashboardFilters()">
+                                    <i class="bi bi-funnel"></i> Aplicar Filtros
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearDashboardFilters()">
+                                    <i class="bi bi-x-circle"></i> Limpar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3">
+                    <!-- Cards de Estatísticas -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0" id="totalActivities">0</h4>
+                                            <small>Total de Atividades</small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-list-task display-6"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0" id="pendingActivities">0</h4>
+                                            <small>Pendentes</small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-clock display-6"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0" id="inProgressActivities">0</h4>
+                                            <small>Em Andamento</small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-arrow-repeat display-6"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="mb-0" id="completedActivities">0</h4>
+                                            <small>Concluídas</small>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="bi bi-check-circle display-6"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráficos -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-pie-chart me-2"></i>Atividades por Status
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="statusChart" width="400" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-bar-chart me-2"></i>Atividades por Setor
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="sectorChart" width="400" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slider de Atividades Recentes -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card" id="activitySliderCard">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-clock-history me-2"></i>Atividades Recentes
+                                        </h6>
+                                        <div class="d-flex align-items-center">
+                                            <button class="btn btn-sm btn-outline-secondary me-2" onclick="previousSlide()" id="prevSlideBtn">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+                                            <span class="badge bg-secondary" id="slideIndicator">1/4</span>
+                                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="nextSlide()" id="nextSlideBtn">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="activitySlides" class="activity-slides">
+                                        <!-- Slide 1: Últimas Atividades Adicionadas -->
+                                        <div class="slide" data-slide="1">
+                                            <h6 class="text-primary mb-3">
+                                                <i class="bi bi-plus-circle me-1"></i>Últimas Atividades Adicionadas
+                                            </h6>
+                                            <div id="latestActivities" class="activity-list">
+                                                <!-- Será preenchido dinamicamente -->
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Slide 2: Últimas Atividades Concluídas -->
+                                        <div class="slide" data-slide="2" style="display: none;">
+                                            <h6 class="text-success mb-3">
+                                                <i class="bi bi-check-circle me-1"></i>Últimas Atividades Concluídas
+                                            </h6>
+                                            <div id="completedActivitiesList" class="activity-list">
+                                                <!-- Será preenchido dinamicamente -->
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Slide 3: Tarefas Atrasadas -->
+                                        <div class="slide" data-slide="3" style="display: none;">
+                                            <h6 class="text-danger mb-3">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Tarefas Atrasadas
+                                            </h6>
+                                            <div id="overdueActivities" class="activity-list">
+                                                <!-- Será preenchido dinamicamente -->
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Slide 4: Atividades em Andamento -->
+                                        <div class="slide" data-slide="4" style="display: none;">
+                                            <h6 class="text-info mb-3">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Atividades em Andamento
+                                            </h6>
+                                            <div id="inProgressActivitiesList" class="activity-list">
+                                                <!-- Será preenchido dinamicamente -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="usersPage" class="page-content" style="display: none;">
+                <div class="page-header p-3 bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people-fill"></i> Usuários
+                        </h5>
+                        <div>
+                            <button class="btn btn-primary" onclick="openUserModal()">
+                                <i class="bi bi-plus-lg"></i> Novo Usuário
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3">
+                    <!-- Users Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nome</th>
+                                            <th>Email</th>
+                                            <th>Função</th>
+                                            <th>Permissões</th>
+                                            <th>Status</th>
+                                            <th>Data Criação</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <!-- Users will be inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Empty State -->
+                            <div id="usersEmptyState" class="text-center py-5" style="display: none;">
+                                <i class="bi bi-people display-1 text-muted"></i>
+                                <h4 class="text-muted mt-3">Nenhum usuário cadastrado</h4>
+                                <p class="text-muted">Clique em "Novo Usuário" para começar</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="page-content" style="display: none;">
+                <div class="page-header p-3 bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear-fill"></i> Configurações
+                        </h5>
+                        <div>
+                            <button class="btn btn-primary" onclick="saveSettings()">
+                                <i class="bi bi-check-lg"></i> Salvar Configurações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3">
+                    <div class="row">
+                        <!-- Configurações Gerais -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-sliders me-2"></i>Configurações Gerais
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="companyName" class="form-label">Nome da Empresa</label>
+                                        <input type="text" class="form-control" id="companyName" placeholder="QualiCode">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="defaultStatus" class="form-label">Status Padrão para Novas Atividades</label>
+                                        <select class="form-select" id="defaultStatus">
+                                            <option value="Pendente">Pendente</option>
+                                            <option value="Em Andamento">Em Andamento</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="itemsPerPage" class="form-label">Itens por Página</label>
+                                        <select class="form-select" id="itemsPerPage">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableNotifications">
+                                            <label class="form-check-label" for="enableNotifications">
+                                                Habilitar Notificações
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="autoSave">
+                                            <label class="form-check-label" for="autoSave">
+                                                Salvamento Automático
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aparência -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-palette me-2"></i>Aparência
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="theme" class="form-label">Tema</label>
+                                        <select class="form-select" id="theme">
+                                            <option value="light">Claro</option>
+                                            <option value="dark">Escuro</option>
+                                            <option value="auto">Automático</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="accentColor" class="form-label">Cor de Destaque</label>
+                                        <div class="d-flex gap-2">
+                                            <input type="color" class="form-control form-control-color" id="accentColor" value="#0d6efd">
+                                            <input type="text" class="form-control" id="accentColorHex" value="#0d6efd" placeholder="#0d6efd">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="fontSize" class="form-label">Tamanho da Fonte</label>
+                                        <select class="form-select" id="fontSize">
+                                            <option value="small">Pequeno</option>
+                                            <option value="medium" selected>Médio</option>
+                                            <option value="large">Grande</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="compactMode">
+                                            <label class="form-check-label" for="compactMode">
+                                                Modo Compacto
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Backup e Restauração -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-cloud-download me-2"></i>Backup e Restauração
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Exportar Dados</label>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-outline-primary" onclick="exportData('json')">
+                                                <i class="bi bi-file-earmark-code"></i> Exportar JSON
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="exportData('csv')">
+                                                <i class="bi bi-file-earmark-excel"></i> Exportar CSV
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="importFile" class="form-label">Importar Dados</label>
+                                        <input type="file" class="form-control" id="importFile" accept=".json">
+                                        <button class="btn btn-outline-warning mt-2" onclick="importData()">
+                                            <i class="bi bi-upload"></i> Importar
+                                        </button>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="autoBackup">
+                                            <label class="form-check-label" for="autoBackup">
+                                                Backup Automático (diário)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sistema -->
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-cpu me-2"></i>Sistema
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Limpar Cache</label>
+                                        <button class="btn btn-outline-secondary" onclick="clearCache()">
+                                            <i class="bi bi-arrow-clockwise"></i> Limpar Cache
+                                        </button>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Redefinir Configurações</label>
+                                        <button class="btn btn-outline-danger" onclick="resetSettings()">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Redefinir
+                                        </button>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Informações do Sistema</label>
+                                        <div class="alert alert-info">
+                                            <small>
+                                                <strong>Versão:</strong> 1.0.0<br>
+                                                <strong>Última Atualização:</strong> <span id="lastUpdate">-</span><br>
+                                                <strong>Armazenamento:</strong> <span id="storageInfo">-</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profilePage" class="page-content" style="display: none;">
+                <div class="page-header p-3 bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-circle"></i> Meu Perfil
+                        </h5>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <!-- Foto de Perfil -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Foto de Perfil</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="profile-avatar-large mb-3" id="profileAvatarLarge">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="file" class="form-control" id="profileImageInput" accept="image/*" style="display: none;">
+                                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('profileImageInput').click()">
+                                            <i class="bi bi-camera"></i> Alterar Foto
+                                        </button>
+                                        <small class="text-muted d-block mt-2">Formatos: JPG, PNG, GIF (máx. 2MB)</small>
+                                    </div>
+                                    <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 2MB)</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Informações Pessoais -->
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Informações Pessoais</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="profileForm">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="profileName" class="form-label">Nome Completo</label>
+                                                <input type="text" class="form-control" id="profileName" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="profileEmail" class="form-label">E-mail</label>
+                                                <input type="email" class="form-control" id="profileEmail" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="profileCurrentPassword" class="form-label">Senha Atual</label>
+                                                <input type="password" class="form-control" id="profileCurrentPassword">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="profileNewPassword" class="form-label">Nova Senha</label>
+                                                <input type="password" class="form-control" id="profileNewPassword">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="profileConfirmPassword" class="form-label">Confirmar Nova Senha</label>
+                                                <input type="password" class="form-control" id="profileConfirmPassword">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="profileRole" class="form-label">Função</label>
+                                                <input type="text" class="form-control" id="profileRole" readonly>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="darkModeToggle">
+                                                <label class="form-check-label" for="darkModeToggle">
+                                                    <i class="bi bi-moon-stars"></i> Modo Escuro (Black Theme)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-check-lg"></i> Salvar Alterações
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="resetProfileForm()">
+                                                <i class="bi bi-x-lg"></i> Cancelar
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Page -->
+            <div id="projectsPage" class="page-content" style="display: none;">
+                <div class="page-header p-3 bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-folder"></i> Central de Projetos
+                        </h5>
+                        <button class="btn btn-primary" onclick="openProjectModal()">
+                            <i class="bi bi-plus-lg"></i> Novo Projeto
+                        </button>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <!-- Projects Cards -->
+                    <div id="projectsCardsContainer" class="projects-container">
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="projectsEmptyState" class="text-center py-5" style="display: none;">
+                        <i class="bi bi-folder display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">Nenhum projeto encontrado</h4>
+                        <p class="text-muted">Clique em "Novo Projeto" para começar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sector Modal -->
+    <div class="modal fade" id="sectorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sectorModalTitle">Novo Setor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="sectorForm">
+                        <input type="hidden" id="sectorId">
+                        <div class="mb-3">
+                            <label for="sectorName" class="form-label">Nome do Setor</label>
+                            <input type="text" class="form-control" id="sectorName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sectorDescription" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="sectorDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sectorIcon" class="form-label">Ícone</label>
+                            <select class="form-select" id="sectorIcon" required>
+                                <option value="bi-building">Prédio</option>
+                                <option value="bi-gear">Engrenagem</option>
+                                <option value="bi-people">Pessoas</option>
+                                <option value="bi-briefcase">Maleta</option>
+                                <option value="bi-graph-up">Gráfico</option>
+                                <option value="bi-shield-check">Escudo</option>
+                                <option value="bi-clipboard-data">Clipboard</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSector()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="activityModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Nova Atividade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="activityForm">
+                        <input type="hidden" id="activityId">
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="responsible" class="form-label">Responsável</label>
+                            <select class="form-select" id="responsible" required>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="requestingSector" class="form-label">Setor Solicitante</label>
+                            <input type="text" class="form-control" id="requestingSector" placeholder="Ex: Qualidade, Planejamento, etc.">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="startDate" class="form-label">Data Início</label>
+                                <input type="date" class="form-control" id="startDate" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="endDate" class="form-label">Data Término</label>
+                                <input type="date" class="form-control" id="endDate" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="classification" class="form-label">Classificação</label>
+                            <select class="form-select" id="classification" required>
+                                <option value="">Selecione...</option>
+                                <optgroup label="Setores" id="sectorsGroup">
+                                </optgroup>
+                                <optgroup label="Projetos" id="projectsGroup">
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" required>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Congelado">Congelado</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Anotações <small class="text-muted">(opcional)</small></label>
+                            <div class="input-group">
+                                <textarea class="form-control" id="notes" rows="2" placeholder="Adicione anotações sobre esta atividade..."></textarea>
+                                <button class="btn btn-outline-secondary" type="button" onclick="toggleNotesVisibility()" title="Alternar visibilidade das anotações">
+                                    <i class="bi bi-eye" id="notesVisibilityIcon"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">As anotações só serão visíveis ao passar o mouse sobre o ícone <i class="bi bi-info-circle"></i></small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveActivity()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="projectModalTitle">Novo Projeto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <input type="hidden" id="projectId">
+                        <div class="mb-3">
+                            <label for="projectName" class="form-label">Nome do Projeto</label>
+                            <input type="text" class="form-control" id="projectName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectDescription" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="projectDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectResponsible" class="form-label">Responsável</label>
+                            <input type="text" class="form-control" id="projectResponsible" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="projectStartDate" class="form-label">Data Início</label>
+                                <input type="date" class="form-control" id="projectStartDate" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="projectEndDate" class="form-label">Data Término</label>
+                                <input type="date" class="form-control" id="projectEndDate" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="projectStatus" class="form-label">Status</label>
+                            <select class="form-select" id="projectStatus" required>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluída">Concluída</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProject()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalTitle">Novo Usuário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="userPassword" required>
+                            <small class="text-muted">Mínimo 6 caracteres</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userConfirmPassword" class="form-label">Confirmar Senha</label>
+                            <input type="password" class="form-control" id="userConfirmPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">Função</label>
+                            <select class="form-select" id="userRole" required>
+                                <option value="">Selecione uma função</option>
+                                <option value="admin">Administrador</option>
+                                <option value="manager">Gerente</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="analyst">Analista</option>
+                                <option value="leader">Líder</option>
+                                <option value="assistant">Assistente</option>
+                                <option value="user">Usuário</option>
+                                <option value="viewer">Visualizador</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="userSector" class="form-label">Setor do Usuário</label>
+                            <select class="form-select" id="userSector" required>
+                            </select>
+                            <small class="text-muted">O usuário só poderá adicionar tarefas diretamente no seu setor. Para outros setores, as solicitações ficarão pendentes de aprovação.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Permissões</label>
+                            <div class="border rounded p-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="perm_activities" checked>
+                                    <label class="form-check-label" for="perm_activities">
+                                        <i class="bi bi-list-task me-2"></i>Atividades
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="perm_dashboard" checked>
+                                    <label class="form-check-label" for="perm_dashboard">
+                                        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="perm_projects">
+                                    <label class="form-check-label" for="perm_projects">
+                                        <i class="bi bi-folder me-2"></i>Projetos
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="perm_users">
+                                    <label class="form-check-label" for="perm_users">
+                                        <i class="bi bi-people-fill me-2"></i>Usuários
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="perm_settings">
+                                    <label class="form-check-label" for="perm_settings">
+                                        <i class="bi bi-gear-fill me-2"></i>Configurações
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="perm_profile" checked disabled>
+                                    <label class="form-check-label" for="perm_profile">
+                                        <i class="bi bi-person-circle me-2"></i>Perfil (Sempre disponível)
+                                    </label>
+                                </div>
+                            </div>
+                            <small class="text-muted">Nota: Acesso ao perfil é sempre permitido para todos os usuários autenticados.</small>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="userActive" checked>
+                                <label class="form-check-label" for="userActive">
+                                    Usuário Ativo
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUser()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

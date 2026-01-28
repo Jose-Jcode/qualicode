@@ -1,0 +1,22 @@
+{
+  "name": "qualicode",
+  "version": "1.0.0",
+  "description": "Sistema de Gerenciamento de Atividades e Projetos",
+  "type": "module",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "build": "echo 'Build successful'",
+    "preview": "python -m http.server 8000"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "atividades",
+    "projetos",
+    "gerenciamento"
+  ],
+  "author": "QualiCode",
+  "license": "MIT"
+}

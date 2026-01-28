@@ -1,0 +1,15 @@
+[build]
+  publish = "."
+  command = "echo 'Build completed'"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  VITE_SUPABASE_URL = "$VITE_SUPABASE_URL"
+  VITE_SUPABASE_ANON_KEY = "$VITE_SUPABASE_ANON_KEY"
