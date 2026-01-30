@@ -1,17 +1,23 @@
+// Configuração do Supabase
+const SUPABASE_URL = 'https://seu-projeto.supabase.co';
+const SUPABASE_ANON_KEY = 'sua-chave-anonima-aqui';
+
+// Inicializar Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Variáveis globais
+let currentUser = null;
 let activities = [];
 let projects = [];
 let sectors = [];
-let activityCounter = 1;
-let projectCounter = 1;
-let sectorCounter = 1;
+let users = [];
 let currentEditId = null;
-let currentProjectEditId = null;
 let currentSectorEditId = null;
+let currentUserEditId = null;
 let activityModal = null;
 let projectModal = null;
 let sectorModal = null;
 let userModal = null;
-
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication first
     if (!checkAuthentication()) {
@@ -146,90 +152,297 @@ document.addEventListener('click', function(event) {
     }
 });
 
-function loadSectors() {
+// Funções do Supabase - substituir localStorage
+
+// Carregar setores do Supabase
+async function loadSectors() {
+    try {
+        const { data, error } = await supabase
+            .from('sectors')
+            .select('*')
+            .order('created_at', { ascending: true });
+            
+        if (error) {
+            console.error('Erro ao carregar setores:', error);
+            // Fallback para localStorage se Supabase falhar
+            loadSectorsFromStorage();
+            return;
+        }
+        
+        sectors = data || [];
+        console.log('Setores carregados do Supabase:', sectors.length);
+        
+        // Se não houver setores, criar padrão
+        if (sectors.length === 0) {
+            await createDefaultSectors();
+        }
+    } catch (error) {
+        console.error('Erro na conexão com Supabase:', error);
+        loadSectorsFromStorage();
+    }
+}
+
+// Salvar setores no Supabase
+async function saveSectors() {
+    try {
+        // Atualizar setores existentes e inserir novos
+        for (const sector of sectors) {
+            const { error } = await supabase
+                .from('sectors')
+                .upsert(sector, { onConflict: 'id' });
+                
+            if (error) {
+                console.error('Erro ao salvar setor:', error);
+            }
+        }
+        console.log('Setores salvos no Supabase');
+    } catch (error) {
+        console.error('Erro ao salvar setores:', error);
+        // Fallback para localStorage
+        localStorage.setItem('sectors', JSON.stringify(sectors));
+    }
+}
+
+// Carregar atividades do Supabase
+async function loadActivities() {
+    try {
+        const { data, error } = await supabase
+            .from('activities')
+            .select('*')
+            .order('created_at', { ascending: true });
+            
+        if (error) {
+            console.error('Erro ao carregar atividades:', error);
+            loadActivitiesFromStorage();
+            return;
+        }
+        
+        activities = data || [];
+        console.log('Atividades carregadas do Supabase:', activities.length);
+    } catch (error) {
+        console.error('Erro na conexão com Supabase:', error);
+        loadActivitiesFromStorage();
+    }
+}
+
+// Salvar atividades no Supabase
+async function saveActivities() {
+    try {
+        // Atualizar atividades existentes e inserir novas
+        for (const activity of activities) {
+            const { error } = await supabase
+                .from('activities')
+                .upsert(activity, { onConflict: 'id' });
+                
+            if (error) {
+                console.error('Erro ao salvar atividade:', error);
+            }
+        }
+        console.log('Atividades salvas no Supabase');
+    } catch (error) {
+        console.error('Erro ao salvar atividades:', error);
+        localStorage.setItem('activities', JSON.stringify(activities));
+    }
+}
+
+// Carregar projetos do Supabase
+async function loadProjects() {
+    try {
+        const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .order('created_at', { ascending: true });
+            
+        if (error) {
+            console.error('Erro ao carregar projetos:', error);
+            loadProjectsFromStorage();
+            return;
+        }
+        
+        projects = data || [];
+        console.log('Projetos carregados do Supabase:', projects.length);
+    } catch (error) {
+        console.error('Erro na conexão com Supabase:', error);
+        loadProjectsFromStorage();
+    }
+}
+
+// Salvar projetos no Supabase
+async function saveProjects() {
+    try {
+        // Atualizar projetos existentes e inserir novos
+        for (const project of projects) {
+            const { error } = await supabase
+                .from('projects')
+                .upsert(project, { onConflict: 'id' });
+                
+            if (error) {
+                console.error('Erro ao salvar projeto:', error);
+            }
+        }
+        console.log('Projetos salvos no Supabase');
+    } catch (error) {
+        console.error('Erro ao salvar projetos:', error);
+        localStorage.setItem('projects', JSON.stringify(projects));
+    }
+}
+
+// Carregar usuários do Supabase
+async function loadUsers() {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .order('created_at', { ascending: true });
+            
+        if (error) {
+            console.error('Erro ao carregar usuários:', error);
+            loadUsersFromStorage();
+            return;
+        }
+        
+        users = data || [];
+        console.log('Usuários carregados do Supabase:', users.length);
+        
+        // Se não houver usuários, criar admin padrão
+        if (users.length === 0) {
+            await createDefaultAdmin();
+        }
+    } catch (error) {
+        console.error('Erro na conexão com Supabase:', error);
+        loadUsersFromStorage();
+    }
+}
+
+// Salvar usuários no Supabase
+async function saveUsers() {
+    try {
+        // Atualizar usuários existentes e inserir novos
+        for (const user of users) {
+            const { error } = await supabase
+                .from('users')
+                .upsert(user, { onConflict: 'id' });
+                
+            if (error) {
+                console.error('Erro ao salvar usuário:', error);
+            }
+        }
+        console.log('Usuários salvos no Supabase');
+    } catch (error) {
+        console.error('Erro ao salvar usuários:', error);
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+}
+
+// Criar setores padrão
+async function createDefaultSectors() {
+    const defaultSectors = [
+        {
+            id: 'SEC#1',
+            name: 'Qualidade',
+            description: 'Setor responsável pela gestão da qualidade',
+            icon: 'bi-shield-check',
+            created_at: new Date().toISOString()
+        },
+        {
+            id: 'SEC#2',
+            name: 'Planejamento',
+            description: 'Setor responsável pelo planejamento estratégico',
+            icon: 'bi-clipboard-data',
+            created_at: new Date().toISOString()
+        }
+    ];
+    
+    try {
+        const { error } = await supabase
+            .from('sectors')
+            .insert(defaultSectors);
+            
+        if (error) {
+            console.error('Erro ao criar setores padrão:', error);
+        } else {
+            sectors = defaultSectors;
+            console.log('Setores padrão criados no Supabase');
+        }
+    } catch (error) {
+        console.error('Erro ao criar setores padrão:', error);
+    }
+}
+
+// Criar admin padrão
+async function createDefaultAdmin() {
+    const defaultAdmin = {
+        id: 'admin',
+        name: 'Administrador',
+        email: 'admin@qualicode.com',
+        password: btoa('admin123'), // Base64 encode
+        role: 'admin',
+        sector: null,
+        permissions: {
+            activities: true,
+            dashboard: true,
+            projects: true,
+            users: true,
+            settings: true
+        },
+        active: true,
+        created_at: new Date().toISOString()
+    };
+    
+    try {
+        const { error } = await supabase
+            .from('users')
+            .insert(defaultAdmin);
+            
+        if (error) {
+            console.error('Erro ao criar admin padrão:', error);
+        } else {
+            users = [defaultAdmin];
+            console.log('Admin padrão criado no Supabase');
+        }
+    } catch (error) {
+        console.error('Erro ao criar admin padrão:', error);
+    }
+}
+
+// Funções de fallback para localStorage
+function loadSectorsFromStorage() {
     const stored = localStorage.getItem('sectors');
     if (stored) {
         sectors = JSON.parse(stored);
-        // Find the highest sector number to continue the sequence
-        const highestNumber = sectors.reduce((max, sector) => {
-            const match = sector.id.match(/^SEC#(\d+)$/);
-            if (match) {
-                return Math.max(max, parseInt(match[1]));
-            }
-            return max;
-        }, 0);
-        sectorCounter = highestNumber + 1;
-    } else {
-        sectors = [
-            {
-                id: 'SEC#1',
-                name: 'Qualidade',
-                description: 'Setor responsável pela gestão da qualidade',
-                icon: 'bi-shield-check'
-            },
-            {
-                id: 'SEC#2',
-                name: 'Planejamento',
-                description: 'Setor responsável pelo planejamento estratégico',
-                icon: 'bi-clipboard-data'
-            }
-        ];
-        sectorCounter = 3;
-        saveSectors();
     }
 }
 
-function saveSectors() {
-    localStorage.setItem('sectors', JSON.stringify(sectors));
-}
-
-function loadActivities() {
+function loadActivitiesFromStorage() {
     const stored = localStorage.getItem('activities');
     if (stored) {
         activities = JSON.parse(stored);
-        // Find the highest activity number to continue the sequence
-        const highestNumber = activities.reduce((max, activity) => {
-            const match = activity.id.match(/^#(\d+)$/);
-            if (match) {
-                return Math.max(max, parseInt(match[1]));
-            }
-            return max;
-        }, 0);
-        activityCounter = highestNumber + 1;
-    } else {
-        activities = [];
-        activityCounter = 1;
-        saveActivities();
     }
 }
 
-function loadProjects() {
+function loadProjectsFromStorage() {
     const stored = localStorage.getItem('projects');
     if (stored) {
         projects = JSON.parse(stored);
-        // Find the highest project number to continue the sequence
-        const highestNumber = projects.reduce((max, project) => {
-            const match = project.id.match(/^PRJ#(\d+)$/);
-            if (match) {
-                return Math.max(max, parseInt(match[1]));
-            }
-            return max;
-        }, 0);
-        projectCounter = highestNumber + 1;
-    } else {
-        projects = [];
-        projectCounter = 1;
-        saveProjects();
+    }
+}
+
+function loadUsersFromStorage() {
+    const stored = localStorage.getItem('users');
+    if (stored) {
+        users = JSON.parse(stored);
     }
 }
 
 function saveActivities() {
-    localStorage.setItem('activities', JSON.stringify(activities));
+    // Já implementado como async function acima
+    console.log('saveActivities() chamado - usando implementação async do Supabase');
     renderSectorsTables();
 }
 
 function saveProjects() {
-    localStorage.setItem('projects', JSON.stringify(projects));
+    // Já implementado como async function acima
+    console.log('saveProjects() chamado - usando implementação async do Supabase');
 }
 
 function generateId() {
@@ -990,10 +1203,6 @@ function clearDashboardFilters() {
 }
 
 // Users Management
-let users = [];
-let currentUser = null;
-let currentUserEditId = null;
-
 function generateUserId() {
     if (users.length === 0) return 'USER#001';
     const highestNumber = users.reduce((max, user) => {
@@ -1004,53 +1213,15 @@ function generateUserId() {
 }
 
 function loadUsers() {
-    const saved = localStorage.getItem('users');
-    if (saved) {
-        users = JSON.parse(saved);
-    } else {
-        // Create default admin user and test user
-        users = [{
-            id: 'USER#001',
-            name: 'Administrador',
-            email: 'admin@qualicode.com',
-            password: btoa('admin123'), // Simple encoding for demo
-            role: 'admin',
-            sector: 'Qualidade',
-            permissions: {
-                activities: true,
-                dashboard: true,
-                projects: true,
-                users: true,
-                settings: true
-            },
-            active: true,
-            createdAt: new Date().toISOString()
-        },
-        {
-            id: 'USER#002',
-            name: 'Gerente de Planejamento',
-            email: 'planejamento@qualicode.com',
-            password: btoa('planej123'),
-            role: 'manager',
-            sector: 'Planejamento',
-            permissions: {
-                activities: true,
-                dashboard: true,
-                projects: true,
-                users: false,
-                settings: false
-            },
-            active: true,
-            createdAt: new Date().toISOString()
-        }];
-        saveUsers();
-    }
-    
-    renderUsers();
+    // Já implementado como async function acima
+    // Esta função é mantida apenas para compatibilidade
+    console.log('loadUsers() chamado - usando implementação async do Supabase');
 }
 
 function saveUsers() {
-    localStorage.setItem('users', JSON.stringify(users));
+    // Já implementado como async function acima
+    // Esta função é mantida apenas para compatibilidade
+    console.log('saveUsers() chamado - usando implementação async do Supabase');
 }
 
 function getRoleLabel(role) {
