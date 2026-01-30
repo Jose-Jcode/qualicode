@@ -756,6 +756,13 @@ function saveSector() {
     if (sectorModal) {
         sectorModal.hide();
     }
+    
+    showNotification(sectorId ? 'Setor atualizado com sucesso!' : 'Setor criado com sucesso!');
+    console.log('Sector save completed successfully');
+}
+
+function renderSectors() {
+    console.log('Rendering sectors table');
     const tbody = document.getElementById('sectorsTableBody');
     const emptyState = document.getElementById('sectorsEmptyState');
     
