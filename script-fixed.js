@@ -79,18 +79,17 @@ function ensureAdminExists() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
     
-    // Carregar usuários do localStorage primeiro
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-        users = JSON.parse(storedUsers);
-        console.log('Users loaded from localStorage:', users.length);
-    }
+    // Carregar dados do localStorage primeiro
+    loadDataFromLocalStorage();
     
     // Garantir que admin exista
     ensureAdminExists();
     
     // Tentar carregar do Supabase (se disponível)
     loadUsers();
+    loadSectors();
+    loadActivities();
+    loadProjects();
     
     // Check authentication
     if (!checkAuthentication()) {
@@ -103,7 +102,95 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApplication();
 });
 
-// Authentication System
+// Função para carregar dados do localStorage
+function loadDataFromLocalStorage() {
+    console.log('Loading data from localStorage');
+    
+    // Carregar usuários
+    const storedUsers = localStorage.getItem('users');
+    if (storedUsers) {
+        users = JSON.parse(storedUsers);
+        console.log('Users loaded from localStorage:', users.length);
+    }
+    
+    // Carregar setores
+    const storedSectors = localStorage.getItem('sectors');
+    if (storedSectors) {
+        sectors = JSON.parse(storedSectors);
+        console.log('Sectors loaded from localStorage:', sectors.length);
+    }
+    
+    // Carregar atividades
+    const storedActivities = localStorage.getItem('activities');
+    if (storedActivities) {
+        activities = JSON.parse(storedActivities);
+        console.log('Activities loaded from localStorage:', activities.length);
+    }
+    
+    // Carregar projetos
+    const storedProjects = localStorage.getItem('projects');
+    if (storedProjects) {
+        projects = JSON.parse(storedProjects);
+        console.log('Projects loaded from localStorage:', projects.length);
+    }
+}
+
+// Funções para carregar dados do Supabase
+function loadUsers() {
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('users').select('*').then(({ data, error }) => {
+            if (error) {
+                console.error('Erro ao carregar usuários do Supabase:', error);
+            } else if (data && data.length > 0) {
+                users = data;
+                localStorage.setItem('users', JSON.stringify(users));
+                console.log('Users loaded from Supabase:', users.length);
+            }
+        });
+    }
+}
+
+function loadSectors() {
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('sectors').select('*').then(({ data, error }) => {
+            if (error) {
+                console.error('Erro ao carregar setores do Supabase:', error);
+            } else if (data && data.length > 0) {
+                sectors = data;
+                localStorage.setItem('sectors', JSON.stringify(sectors));
+                console.log('Sectors loaded from Supabase:', sectors.length);
+            }
+        });
+    }
+}
+
+function loadActivities() {
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('activities').select('*').then(({ data, error }) => {
+            if (error) {
+                console.error('Erro ao carregar atividades do Supabase:', error);
+            } else if (data && data.length > 0) {
+                activities = data;
+                localStorage.setItem('activities', JSON.stringify(activities));
+                console.log('Activities loaded from Supabase:', activities.length);
+            }
+        });
+    }
+}
+
+function loadProjects() {
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('projects').select('*').then(({ data, error }) => {
+            if (error) {
+                console.error('Erro ao carregar projetos do Supabase:', error);
+            } else if (data && data.length > 0) {
+                projects = data;
+                localStorage.setItem('projects', JSON.stringify(projects));
+                console.log('Projects loaded from Supabase:', projects.length);
+            }
+        });
+    }
+}
 function checkAuthentication() {
     const session = localStorage.getItem('userSession') || sessionStorage.getItem('userSession');
     if (session) {
@@ -144,6 +231,12 @@ function showMainApp() {
     
     // Renderizar atividades iniciais
     renderFilteredActivities(activities);
+    
+    // Renderizar projetos
+    renderProjects();
+    
+    // Popular dropdown de responsáveis
+    populateResponsibleDropdown();
     
     console.log('showMainApp executed');
 }
@@ -868,6 +961,44 @@ function deleteSector(id) {
         renderSectorsTables(); // Adicionado para atualizar a tela de atividades
         showNotification('Setor excluído com sucesso!');
     }
+}
+
+function populateResponsibleDropdown() {
+    const responsibleSelect = document.getElementById('responsible');
+    if (!responsibleSelect) {
+        console.log('Element responsible not found');
+        return;
+    }
+    
+    console.log('populateResponsibleDropdown called, users count:', users.length);
+    
+    // Limpar select
+    responsibleSelect.innerHTML = '';
+    
+    // Adicionar opção padrão
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Selecione um responsável';
+    responsibleSelect.appendChild(defaultOption);
+    
+    // Carregar perfis de usuários
+    const userProfiles = localStorage.getItem('userProfiles');
+    const allProfiles = userProfiles ? JSON.parse(userProfiles) : {};
+    
+    // Adicionar usuários como opções
+    users.forEach(user => {
+        // Usar nome do perfil se disponível, caso contrário usar nome do usuário
+        const profile = allProfiles[user.email];
+        const displayName = profile && profile.name ? profile.name : user.name;
+        
+        console.log('Adding user option:', displayName);
+        const option = document.createElement('option');
+        option.value = displayName;
+        option.textContent = displayName;
+        responsibleSelect.appendChild(option);
+    });
+    
+    console.log('populateResponsibleDropdown completed');
 }
 
 function populateSectorDropdowns() {
