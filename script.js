@@ -268,6 +268,11 @@ function openModal() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('startDate').value = today;
     
+    // Check if modal exists and is initialized
+    if (!activityModal) {
+        activityModal = new bootstrap.Modal(document.getElementById('activityModal'));
+    }
+    
     activityModal.show();
 }
 
