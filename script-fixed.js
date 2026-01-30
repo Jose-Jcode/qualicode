@@ -138,6 +138,13 @@ function showMainApp() {
         renderUsers();
     }
     
+    // Renderizar setores e popular dropdowns
+    renderSectors();
+    populateSectorDropdowns();
+    
+    // Renderizar atividades iniciais
+    renderFilteredActivities(activities);
+    
     console.log('showMainApp executed');
 }
 
@@ -418,6 +425,359 @@ function openUserModal() {
     } catch (error) {
         console.error('Error showing user modal:', error);
     }
+}
+
+// Funções para Setor - IMPLEMENTADAS
+function openSectorModal() {
+    console.log('Opening sector modal');
+    
+    // Check if modal exists and is initialized
+    if (!sectorModal) {
+        console.log('Initializing sector modal...');
+        if (typeof bootstrap !== 'undefined') {
+            sectorModal = new bootstrap.Modal(document.getElementById('sectorModal'));
+        } else {
+            console.error('Bootstrap not available for modal');
+            return;
+        }
+    }
+    
+    currentSectorEditId = null;
+    document.getElementById('sectorModalTitle').textContent = 'Novo Setor';
+    document.getElementById('sectorForm').reset();
+    document.getElementById('sectorId').value = '';
+    
+    // Show modal
+    try {
+        sectorModal.show();
+        console.log('Sector modal shown successfully');
+    } catch (error) {
+        console.error('Error showing sector modal:', error);
+    }
+}
+
+function saveSector() {
+    console.log('Saving sector...');
+    
+    const form = document.getElementById('sectorForm');
+    if (!form) {
+        console.error('Sector form not found');
+        return;
+    }
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const sectorId = document.getElementById('sectorId').value;
+    const sectorData = {
+        name: document.getElementById('sectorName').value.trim(),
+        description: document.getElementById('sectorDescription').value.trim(),
+        responsible: document.getElementById('sectorResponsible').value.trim(),
+        created_at: new Date().toISOString()
+    };
+    
+    if (!sectorId) {
+        sectorData.id = generateSectorId();
+        sectors.push(sectorData);
+    } else {
+        const index = sectors.findIndex(s => s.id === sectorId);
+        if (index !== -1) {
+            sectors[index] = { ...sectors[index], ...sectorData };
+        }
+    }
+    
+    // Salvar no localStorage
+    localStorage.setItem('sectors', JSON.stringify(sectors));
+    
+    // Tentar salvar no Supabase
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('sectors').upsert(sectorData).then(({ error }) => {
+            if (error) {
+                console.error('Erro ao salvar setor no Supabase:', error);
+            } else {
+                console.log('Setor salvo no Supabase com sucesso');
+            }
+        });
+    }
+    
+    renderSectors();
+    populateSectorDropdowns();
+    
+    if (sectorModal) {
+        sectorModal.hide();
+    }
+    
+    showNotification(sectorId ? 'Setor atualizado com sucesso!' : 'Setor criado com sucesso!');
+}
+
+function generateSectorId() {
+    if (sectors.length === 0) return 'SECTOR#001';
+    const highestNumber = sectors.reduce((max, sector) => {
+        const match = sector.id.match(/^SECTOR#(\d+)$/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+    }, 0);
+    return `SECTOR#${String(highestNumber + 1).padStart(3, '0')}`;
+}
+
+function renderSectors() {
+    console.log('Rendering sectors table');
+    const tbody = document.getElementById('sectorsTableBody');
+    const emptyState = document.getElementById('sectorsEmptyState');
+    
+    if (!tbody) {
+        console.log('Sectors table body not found');
+        return;
+    }
+    
+    if (sectors.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+    
+    if (emptyState) emptyState.style.display = 'none';
+    tbody.innerHTML = sectors.map(sector => `
+        <tr>
+            <td><span class="text-id">${sector.id}</span></td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="sector-icon me-2">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="fw-semibold">${sector.name}</div>
+                </div>
+            </td>
+            <td>${sector.description || '-'}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-circle me-2"></i>
+                    ${sector.responsible || '-'}
+                </div>
+            </td>
+            <td>${formatDate(sector.created_at)}</td>
+            <td>
+                <button class="btn btn-sm btn-action btn-edit me-1" onclick="editSector('${sector.id}')" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-action btn-delete" onclick="deleteSector('${sector.id}')" title="Excluir">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function editSector(id) {
+    console.log('Editing sector:', id);
+    const sector = sectors.find(s => s.id === id);
+    if (!sector) return;
+    
+    currentSectorEditId = id;
+    document.getElementById('sectorModalTitle').textContent = 'Editar Setor';
+    document.getElementById('sectorId').value = sector.id;
+    document.getElementById('sectorName').value = sector.name;
+    document.getElementById('sectorDescription').value = sector.description || '';
+    document.getElementById('sectorResponsible').value = sector.responsible || '';
+    
+    if (sectorModal) {
+        sectorModal.show();
+    }
+}
+
+function deleteSector(id) {
+    if (confirm('Tem certeza que deseja excluir este setor?')) {
+        sectors = sectors.filter(s => s.id !== id);
+        localStorage.setItem('sectors', JSON.stringify(sectors));
+        renderSectors();
+        populateSectorDropdowns();
+        showNotification('Setor excluído com sucesso!');
+    }
+}
+
+function populateSectorDropdowns() {
+    console.log('Populating sector dropdowns');
+    
+    // Popula dropdown de classificação de atividades
+    const sectorsGroup = document.getElementById('sectorsGroup');
+    if (sectorsGroup) {
+        sectorsGroup.innerHTML = sectors.map(sector => 
+            `<option value="${sector.id}">${sector.name}</option>`
+        ).join('');
+    }
+    
+    // Popula dropdown de setor do usuário
+    const userSector = document.getElementById('userSector');
+    if (userSector) {
+        userSector.innerHTML = '<option value="">Selecione um setor</option>' + 
+            sectors.map(sector => 
+                `<option value="${sector.name}">${sector.name}</option>`
+            ).join('');
+    }
+}
+
+// Funções para Filtros de Atividades - IMPLEMENTADAS
+function toggleFilterDropdown() {
+    console.log('Toggling filter dropdown');
+    const dropdown = document.getElementById('filterDropdown');
+    
+    if (!dropdown) {
+        console.error('Filter dropdown not found');
+        return;
+    }
+    
+    // Toggle visibility
+    if (dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+    } else {
+        dropdown.style.display = 'block';
+        // Position dropdown
+        const button = document.getElementById('filterButton');
+        if (button) {
+            const rect = button.getBoundingClientRect();
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = rect.bottom + 'px';
+            dropdown.style.left = rect.left + 'px';
+            dropdown.style.zIndex = '1000';
+            dropdown.style.minWidth = '200px';
+        }
+    }
+}
+
+function applyActivityFilters() {
+    console.log('Applying activity filters');
+    
+    const statusFilter = document.getElementById('statusFilter')?.value || '';
+    const sectorFilter = document.getElementById('sectorFilter')?.value || '';
+    const responsibleFilter = document.getElementById('responsibleFilter')?.value || '';
+    const dateFilter = document.getElementById('dateFilter')?.value || '';
+    
+    let filteredActivities = [...activities];
+    
+    // Filtrar por status
+    if (statusFilter) {
+        filteredActivities = filteredActivities.filter(activity => 
+            activity.status === statusFilter
+        );
+    }
+    
+    // Filtrar por setor
+    if (sectorFilter) {
+        filteredActivities = filteredActivities.filter(activity => 
+            activity.classification === sectorFilter
+        );
+    }
+    
+    // Filtrar por responsável
+    if (responsibleFilter) {
+        filteredActivities = filteredActivities.filter(activity => 
+            activity.responsible === responsibleFilter
+        );
+    }
+    
+    // Filtrar por data
+    if (dateFilter) {
+        const today = new Date();
+        filteredActivities = filteredActivities.filter(activity => {
+            const activityDate = new Date(activity.startDate);
+            switch (dateFilter) {
+                case 'today':
+                    return activityDate.toDateString() === today.toDateString();
+                case 'week':
+                    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    return activityDate >= today && activityDate <= weekFromNow;
+                case 'month':
+                    return activityDate.getMonth() === today.getMonth() && 
+                           activityDate.getFullYear() === today.getFullYear();
+                default:
+                    return true;
+            }
+        });
+    }
+    
+    renderFilteredActivities(filteredActivities);
+    
+    // Fechar dropdown
+    const dropdown = document.getElementById('filterDropdown');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+    
+    showNotification(`${filteredActivities.length} atividades encontradas`);
+}
+
+function renderFilteredActivities(filteredActivities) {
+    console.log('Rendering filtered activities:', filteredActivities.length);
+    const container = document.getElementById('activitiesContainer');
+    
+    if (!container) {
+        console.log('Activities container not found');
+        return;
+    }
+    
+    if (filteredActivities.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-search display-4 text-muted"></i>
+                <h5 class="mt-3 text-muted">Nenhuma atividade encontrada</h5>
+                <p class="text-muted">Tente ajustar os filtros para ver mais resultados.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredActivities.map(activity => `
+        <div class="activity-item mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="card-title">${activity.description}</h6>
+                            <p class="card-text text-muted small mb-2">${activity.notes || ''}</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge bg-primary">${activity.status}</span>
+                                <span class="badge bg-info">${activity.classification}</span>
+                                <span class="badge bg-secondary">${activity.responsible}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">${formatDate(activity.startDate)}</small>
+                            <button class="btn btn-sm btn-outline-primary mt-1" onclick="editActivity('${activity.id}')">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function clearActivityFilters() {
+    console.log('Clearing activity filters');
+    
+    // Limpar todos os filtros
+    const statusFilter = document.getElementById('statusFilter');
+    const sectorFilter = document.getElementById('sectorFilter');
+    const responsibleFilter = document.getElementById('responsibleFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    
+    if (statusFilter) statusFilter.value = '';
+    if (sectorFilter) sectorFilter.value = '';
+    if (responsibleFilter) responsibleFilter.value = '';
+    if (dateFilter) dateFilter.value = '';
+    
+    // Renderizar todas as atividades
+    renderFilteredActivities(activities);
+    
+    // Fechar dropdown
+    const dropdown = document.getElementById('filterDropdown');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+    
+    showNotification('Filtros limpos');
 }
 
 function saveUser() {
