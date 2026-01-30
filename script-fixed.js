@@ -151,24 +151,41 @@ function loadUsers() {
 }
 
 function loadSectors() {
-    // Primeiro carregar do localStorage
+    // Carregar do localStorage primeiro
     const storedSectors = localStorage.getItem('sectors');
     if (storedSectors) {
         sectors = JSON.parse(storedSectors);
         console.log('Sectors loaded from localStorage:', sectors.length);
     }
     
-    // Depois tentar carregar do Supabase (se disponível)
+    // Tentar carregar do Supabase e MESCLAR dados
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('sectors').select('*').then(({ data, error }) => {
             if (error) {
                 console.error('Erro ao carregar setores do Supabase:', error);
             } else if (data && data.length > 0) {
-                // Só sobrescrever se não tiver dados locais
-                if (!storedSectors) {
-                    sectors = data;
-                    localStorage.setItem('sectors', JSON.stringify(sectors));
-                    console.log('Sectors loaded from Supabase:', sectors.length);
+                console.log('Sectors from Supabase:', data.length);
+                
+                // Mesclar dados: combinar localStorage + Supabase sem duplicatas
+                const combinedSectors = [...sectors];
+                
+                data.forEach(supabaseSector => {
+                    const exists = combinedSectors.find(local => local.id === supabaseSector.id);
+                    if (!exists) {
+                        combinedSectors.push(supabaseSector);
+                        console.log('Added sector from Supabase:', supabaseSector.id);
+                    }
+                });
+                
+                sectors = combinedSectors;
+                localStorage.setItem('sectors', JSON.stringify(sectors));
+                console.log('Total sectors after merge:', sectors.length);
+                
+                // Atualizar interface se já estiver logado
+                if (currentUser) {
+                    renderSectors();
+                    populateSectorDropdowns();
+                    renderSectorsTables();
                 }
             }
         });
@@ -176,24 +193,40 @@ function loadSectors() {
 }
 
 function loadActivities() {
-    // Primeiro carregar do localStorage
+    // Carregar do localStorage primeiro
     const storedActivities = localStorage.getItem('activities');
     if (storedActivities) {
         activities = JSON.parse(storedActivities);
         console.log('Activities loaded from localStorage:', activities.length);
     }
     
-    // Depois tentar carregar do Supabase (se disponível)
+    // Tentar carregar do Supabase e MESCLAR dados
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('activities').select('*').then(({ data, error }) => {
             if (error) {
                 console.error('Erro ao carregar atividades do Supabase:', error);
             } else if (data && data.length > 0) {
-                // Só sobrescrever se não tiver dados locais
-                if (!storedActivities) {
-                    activities = data;
-                    localStorage.setItem('activities', JSON.stringify(activities));
-                    console.log('Activities loaded from Supabase:', activities.length);
+                console.log('Activities from Supabase:', data.length);
+                
+                // Mesclar dados: combinar localStorage + Supabase sem duplicatas
+                const combinedActivities = [...activities];
+                
+                data.forEach(supabaseActivity => {
+                    const exists = combinedActivities.find(local => local.id === supabaseActivity.id);
+                    if (!exists) {
+                        combinedActivities.push(supabaseActivity);
+                        console.log('Added activity from Supabase:', supabaseActivity.id);
+                    }
+                });
+                
+                activities = combinedActivities;
+                localStorage.setItem('activities', JSON.stringify(activities));
+                console.log('Total activities after merge:', activities.length);
+                
+                // Atualizar interface se já estiver logado
+                if (currentUser) {
+                    renderFilteredActivities(activities);
+                    renderSectorsTables();
                 }
             }
         });
@@ -1181,15 +1214,15 @@ function saveActivity() {
         const index = activities.findIndex(a => a.id === activityId);
         if (index !== -1) {
             activities[index] = { ...activities[index], ...activityData };
-            console.log('Activity updated:', activityData);
+            console.log('Activity updated:', activities[index]);
         }
     }
     
-    // Salvar no localStorage
+    // Salvar no localStorage IMEDIATAMENTE
     localStorage.setItem('activities', JSON.stringify(activities));
     console.log('Activities saved to localStorage:', activities.length);
     
-    // Tentar salvar no Supabase
+    // Tentar salvar no Supabase em background
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('activities').upsert(activityData).then(({ error }) => {
             if (error) {
@@ -1200,16 +1233,11 @@ function saveActivity() {
         });
     }
     
-    // Atualizar interface
+    // Atualizar interface IMEDIATAMENTE
     renderFilteredActivities(activities);
     renderSectorsTables();
     
-    // Fechar modal
-    if (activityModal) {
-        activityModal.hide();
-    }
-    
-    showNotification(activityId ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
+    showNotification(currentEditId ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
     console.log('Activity save completed successfully');
 }
 
