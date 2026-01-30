@@ -495,7 +495,7 @@ function renderSectorsTables() {
     // Renderizar setores como cards expansíveis
     container.innerHTML = sectors.map(sector => {
         const sectorActivities = activities.filter(activity => 
-            activity.classification === sector.id
+            activity.classification === sector.id || activity.requestingSector === sector.name
         );
         
         return `
@@ -520,6 +520,13 @@ function renderSectorsTables() {
                         <div class="sector-description mb-3">
                             <p class="text-muted small mb-2">${sector.description || ''}</p>
                             <small class="text-muted">Responsável: ${sector.responsible || '-'}</small>
+                            ${currentUser && currentUser.role === 'admin' ? `
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteSector('${sector.id}')" title="Excluir Setor">
+                                        <i class="bi bi-trash"></i> Excluir Setor
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                         
                         ${sectorActivities.length === 0 ? `
@@ -690,6 +697,23 @@ function loadUserProfile() {
     updateSidebarProfile();
 }
 
+function logout() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        // Clear session
+        localStorage.removeItem('userSession');
+        sessionStorage.removeItem('userSession');
+        
+        // Clear current user
+        currentUser = null;
+        userProfile = null;
+        
+        // Show login screen
+        showLoginScreen();
+        
+        showNotification('Sessão encerrada com sucesso!');
+    }
+}
+
 function updateSidebarProfile() {
     const nameElement = document.getElementById('sidebarProfileName');
     const emailElement = document.getElementById('sidebarProfileEmail');
@@ -700,9 +724,9 @@ function updateSidebarProfile() {
     
     if (avatarElement) {
         if (userProfile.avatar) {
-            avatarElement.innerHTML = `<img src="${userProfile.avatar}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`;
+            avatarElement.innerHTML = `<img src="${userProfile.avatar}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
         } else {
-            avatarElement.innerHTML = `<i class="bi bi-person-circle" style="font-size: 40px;"></i>`;
+            avatarElement.innerHTML = `<i class="bi bi-person-circle" style="font-size: 40px; color: #6c757d;"></i>`;
         }
     }
 }
@@ -1269,6 +1293,7 @@ function saveProject() {
     
     // Atualizar interface
     renderProjects();
+    renderSectorsTables(); // Adicionado para atualizar a tela de atividades
     
     // Fechar modal
     if (projectModal) {
