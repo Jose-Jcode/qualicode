@@ -132,6 +132,12 @@ function showMainApp() {
     }
     
     loadUserProfile();
+    
+    // Renderizar usuários se tiver permissão
+    if (currentUser && currentUser.permissions && currentUser.permissions.users) {
+        renderUsers();
+    }
+    
     console.log('showMainApp executed');
 }
 
@@ -216,6 +222,9 @@ function initializeApplication() {
             projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
             sectorModal = new bootstrap.Modal(document.getElementById('sectorModal'));
             userModal = new bootstrap.Modal(document.getElementById('userModal'));
+            console.log('Modals initialized successfully');
+        } else {
+            console.error('Bootstrap not available, modals will not work');
         }
     } catch (error) {
         console.log('Bootstrap initialization error:', error.message);
@@ -227,6 +236,15 @@ function initializeApplication() {
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             login();
+        });
+    }
+    
+    // Setup user form listener
+    const userForm = document.getElementById('userForm');
+    if (userForm) {
+        userForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveUser();
         });
     }
 }
@@ -362,6 +380,263 @@ function loadUserProfile() {
     if (currentUser) {
         if (profileName) profileName.textContent = currentUser.name;
         if (profileEmail) profileEmail.textContent = currentUser.email;
+    }
+}
+
+// Funções para modais - IMPLEMENTADAS
+function openUserModal() {
+    console.log('Opening user modal');
+    
+    // Check if modal exists and is initialized
+    if (!userModal) {
+        console.log('Initializing user modal...');
+        if (typeof bootstrap !== 'undefined') {
+            userModal = new bootstrap.Modal(document.getElementById('userModal'));
+        } else {
+            console.error('Bootstrap not available for modal');
+            return;
+        }
+    }
+    
+    currentUserEditId = null;
+    document.getElementById('userModalTitle').textContent = 'Novo Usuário';
+    document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
+    
+    // Set default permissions
+    document.getElementById('perm_activities').checked = true;
+    document.getElementById('perm_dashboard').checked = true;
+    document.getElementById('perm_projects').checked = false;
+    document.getElementById('perm_users').checked = false;
+    document.getElementById('perm_settings').checked = false;
+    document.getElementById('userActive').checked = true;
+    
+    // Show modal
+    try {
+        userModal.show();
+        console.log('User modal shown successfully');
+    } catch (error) {
+        console.error('Error showing user modal:', error);
+    }
+}
+
+function saveUser() {
+    console.log('Saving user...');
+    
+    const form = document.getElementById('userForm');
+    if (!form) {
+        console.error('User form not found');
+        return;
+    }
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const userId = document.getElementById('userId').value;
+    const password = document.getElementById('userPassword').value;
+    const confirmPassword = document.getElementById('userConfirmPassword').value;
+    
+    // Validate passwords for new users
+    if (!userId && password !== confirmPassword) {
+        showNotification('As senhas não conferem!', 'error');
+        return;
+    }
+    
+    if (!userId && password.length < 6) {
+        showNotification('A senha deve ter no mínimo 6 caracteres!', 'error');
+        return;
+    }
+    
+    const userData = {
+        name: document.getElementById('userName').value.trim(),
+        email: document.getElementById('userEmail').value.trim(),
+        role: document.getElementById('userRole').value,
+        sector: document.getElementById('userSector').value,
+        permissions: {
+            activities: document.getElementById('perm_activities').checked,
+            dashboard: document.getElementById('perm_dashboard').checked,
+            projects: document.getElementById('perm_projects').checked,
+            users: document.getElementById('perm_users').checked,
+            settings: document.getElementById('perm_settings').checked,
+            profile: true
+        },
+        active: document.getElementById('userActive').checked,
+        created_at: new Date().toISOString()
+    };
+    
+    if (!userId) {
+        userData.id = generateUserId();
+        userData.password = btoa(password);
+        users.push(userData);
+    } else {
+        const index = users.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            if (!password) {
+                userData.password = users[index].password;
+            } else {
+                userData.password = btoa(password);
+            }
+            users[index] = { ...users[index], ...userData };
+        }
+    }
+    
+    // Salvar no localStorage
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // Tentar salvar no Supabase
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('users').upsert(userData).then(({ error }) => {
+            if (error) {
+                console.error('Erro ao salvar usuário no Supabase:', error);
+            } else {
+                console.log('Usuário salvo no Supabase com sucesso');
+            }
+        });
+    }
+    
+    renderUsers();
+    
+    if (userModal) {
+        userModal.hide();
+    }
+    
+    showNotification(userId ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!');
+}
+
+function generateUserId() {
+    if (users.length === 0) return 'USER#001';
+    const highestNumber = users.reduce((max, user) => {
+        const match = user.id.match(/^USER#(\d+)$/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+    }, 0);
+    return `USER#${String(highestNumber + 1).padStart(3, '0')}`;
+}
+
+function renderUsers() {
+    console.log('Rendering users table');
+    const tbody = document.getElementById('usersTableBody');
+    const emptyState = document.getElementById('usersEmptyState');
+    
+    if (!tbody) {
+        console.log('Users table body not found');
+        return;
+    }
+    
+    if (users.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+    
+    if (emptyState) emptyState.style.display = 'none';
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td><span class="text-id">${user.id}</span></td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar me-2">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">${user.name}</div>
+                        ${!user.active ? '<small class="text-muted">Inativo</small>' : ''}
+                    </div>
+                </div>
+            </td>
+            <td>${user.email}</td>
+            <td>
+                <span class="badge bg-secondary">${getRoleLabel(user.role || 'user')}</span>
+                ${user.sector ? `<span class="badge bg-info ms-1">${user.sector}</span>` : ''}
+            </td>
+            <td>
+                <div class="permission-badges">
+                    ${user.permissions.activities ? '<span class="badge bg-primary me-1">Atividades</span>' : ''}
+                    ${user.permissions.dashboard ? '<span class="badge bg-info me-1">Dashboard</span>' : ''}
+                    ${user.permissions.projects ? '<span class="badge bg-success me-1">Projetos</span>' : ''}
+                    ${user.permissions.users ? '<span class="badge bg-warning me-1">Usuários</span>' : ''}
+                    ${user.permissions.settings ? '<span class="badge bg-secondary">Configurações</span>' : ''}
+                </div>
+            </td>
+            <td>
+                <span class="status-badge status-${user.active ? 'active' : 'inactive'}">
+                    ${user.active ? 'Ativo' : 'Inativo'}
+                </span>
+            </td>
+            <td>${formatDate(user.created_at)}</td>
+            <td>
+                <button class="btn btn-sm btn-action btn-edit me-1" onclick="editUser('${user.id}')" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-action btn-delete" onclick="deleteUser('${user.id}')" title="Excluir">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function getRoleLabel(role) {
+    const roles = {
+        'admin': 'Administrador',
+        'manager': 'Gerente',
+        'supervisor': 'Supervisor',
+        'analyst': 'Analista',
+        'leader': 'Líder',
+        'assistant': 'Assistente',
+        'user': 'Usuário',
+        'viewer': 'Visualizador'
+    };
+    return roles[role] || 'Usuário';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+}
+
+function editUser(id) {
+    console.log('Editing user:', id);
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+    
+    currentUserEditId = id;
+    document.getElementById('userModalTitle').textContent = 'Editar Usuário';
+    document.getElementById('userId').value = user.id;
+    document.getElementById('userName').value = user.name;
+    document.getElementById('userEmail').value = user.email;
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userConfirmPassword').value = '';
+    
+    document.getElementById('userRole').value = user.role || 'user';
+    document.getElementById('userSector').value = user.sector || '';
+    
+    // Load permissions
+    document.getElementById('perm_activities').checked = user.permissions.activities;
+    document.getElementById('perm_dashboard').checked = user.permissions.dashboard;
+    document.getElementById('perm_projects').checked = user.permissions.projects;
+    document.getElementById('perm_users').checked = user.permissions.users;
+    document.getElementById('perm_settings').checked = user.permissions.settings;
+    document.getElementById('userActive').checked = user.active;
+    
+    if (userModal) {
+        userModal.show();
+    }
+}
+
+function deleteUser(id) {
+    if (id === currentUser?.id) {
+        showNotification('Você não pode excluir seu próprio usuário.', 'error');
+        return;
+    }
+    
+    if (confirm('Tem certeza que deseja excluir este usuário?')) {
+        users = users.filter(u => u.id !== id);
+        localStorage.setItem('users', JSON.stringify(users));
+        renderUsers();
+        showNotification('Usuário excluído com sucesso!');
     }
 }
 function showNotification(message, type = 'success') { 
