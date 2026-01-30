@@ -106,6 +106,15 @@ function toggleFilterDropdown() {
         dropdown.classList.toggle('show');
         // Fechar outros dropdowns
         document.getElementById('settingsDropdown').nextElementSibling.classList.remove('show');
+        
+        // Garantir posicionamento correto
+        const button = document.getElementById('filterDropdown');
+        const buttonRect = button.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = (buttonRect.bottom + 5) + 'px';
+        dropdown.style.right = (window.innerWidth - buttonRect.right) + 'px';
+        dropdown.style.left = 'auto';
+        dropdown.style.zIndex = '1050';
     }
 }
 
@@ -115,6 +124,15 @@ function toggleSettingsDropdown() {
         dropdown.classList.toggle('show');
         // Fechar outros dropdowns
         document.getElementById('filterDropdown').nextElementSibling.classList.remove('show');
+        
+        // Garantir posicionamento correto
+        const button = document.getElementById('settingsDropdown');
+        const buttonRect = button.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = (buttonRect.bottom + 5) + 'px';
+        dropdown.style.right = (window.innerWidth - buttonRect.right) + 'px';
+        dropdown.style.left = 'auto';
+        dropdown.style.zIndex = '1050';
     }
 }
 
