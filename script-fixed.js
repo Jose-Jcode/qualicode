@@ -213,24 +213,40 @@ function login() {
         console.log('Login attempt:', email);
         console.log('Available users:', users.length);
         
-        // Se não tiver usuários carregados, tentar carregar do Supabase
+        // Se não tiver usuários carregados, tentar carregar do Supabase E ESPERAR
         if (users.length === 0) {
-            console.log('No users loaded, trying to load from Supabase...');
+            console.log('No users loaded, loading from Supabase...');
+            showNotification('Carregando usuários...', 'info');
+            
             if (typeof supabaseClient.from === 'function') {
                 supabaseClient.from('users').select('*').then(({ data, error }) => {
                     if (error) {
                         console.error('Erro ao carregar usuários:', error);
-                        showNotification('Erro ao carregar usuários', 'error');
+                        showNotification('Erro ao carregar usuários: ' + error.message, 'error');
                         return;
                     } else if (data && data.length > 0) {
                         users = data;
                         console.log('Users loaded from Supabase:', users.length);
+                        console.log('Users:', users.map(u => ({ email: u.email, active: u.active })));
+                        
                         // Tentar login novamente após carregar
-                        setTimeout(() => login(), 500);
+                        setTimeout(() => {
+                            console.log('Retrying login...');
+                            login();
+                        }, 1000);
+                        return;
+                    } else {
+                        console.log('No users found in Supabase');
+                        showNotification('Nenhum usuário encontrado no sistema', 'error');
                         return;
                     }
                 });
+            } else {
+                console.error('Supabase client not available');
+                showNotification('Erro de conexão com o banco de dados', 'error');
+                return;
             }
+            return; // Esperar o carregamento
         }
         
         // Find user by email
@@ -280,7 +296,7 @@ function login() {
         
     } catch (error) {
         console.error('Login error:', error);
-        showNotification('Erro ao fazer login.', 'error');
+        showNotification('Erro ao fazer login: ' + error.message, 'error');
     }
 }
 
