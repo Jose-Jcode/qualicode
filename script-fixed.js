@@ -264,6 +264,24 @@ function initializeApplication() {
         });
     }
     
+    // Setup activity form listener
+    const activityForm = document.getElementById('activityForm');
+    if (activityForm) {
+        activityForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveActivity();
+        });
+    }
+    
+    // Setup project form listener
+    const projectForm = document.getElementById('projectForm');
+    if (projectForm) {
+        projectForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveProject();
+        });
+    }
+    
     // Fechar dropdowns ao clicar fora
     document.addEventListener('click', function(e) {
         const filterButton = document.getElementById('filterDropdown');
@@ -558,12 +576,41 @@ function refreshDashboard() {
 
 function loadUserProfile() { 
     console.log('Loading user profile');
+    
+    // Carregar perfil do localStorage
+    const userProfiles = JSON.parse(localStorage.getItem('userProfiles') || '{}');
+    userProfile = userProfiles[currentUser.email] || {
+        name: currentUser.name,
+        email: currentUser.email,
+        avatar: null,
+        darkMode: false
+    };
+    
+    // Atualizar elementos do perfil na página
     const profileName = document.getElementById('profileName');
     const profileEmail = document.getElementById('profileEmail');
     
-    if (currentUser) {
-        if (profileName) profileName.textContent = currentUser.name;
-        if (profileEmail) profileEmail.textContent = currentUser.email;
+    if (profileName) profileName.textContent = userProfile.name;
+    if (profileEmail) profileEmail.textContent = userProfile.email;
+    
+    // Atualizar sidebar
+    updateSidebarProfile();
+}
+
+function updateSidebarProfile() {
+    const nameElement = document.getElementById('sidebarProfileName');
+    const emailElement = document.getElementById('sidebarProfileEmail');
+    const avatarElement = document.getElementById('sidebarProfileAvatar');
+    
+    if (nameElement) nameElement.textContent = userProfile.name || currentUser.name;
+    if (emailElement) emailElement.textContent = userProfile.email || currentUser.email;
+    
+    if (avatarElement) {
+        if (userProfile.avatar) {
+            avatarElement.innerHTML = `<img src="${userProfile.avatar}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`;
+        } else {
+            avatarElement.innerHTML = `<i class="bi bi-person-circle" style="font-size: 40px;"></i>`;
+        }
     }
 }
 
@@ -709,22 +756,6 @@ function saveSector() {
     if (sectorModal) {
         sectorModal.hide();
     }
-    
-    showNotification(sectorId ? 'Setor atualizado com sucesso!' : 'Setor criado com sucesso!');
-    console.log('Sector save completed successfully');
-}
-
-function generateSectorId() {
-    if (sectors.length === 0) return 'SECTOR#001';
-    const highestNumber = sectors.reduce((max, sector) => {
-        const match = sector.id.match(/^SECTOR#(\d+)$/);
-        return match ? Math.max(max, parseInt(match[1])) : max;
-    }, 0);
-    return `SECTOR#${String(highestNumber + 1).padStart(3, '0')}`;
-}
-
-function renderSectors() {
-    console.log('Rendering sectors table');
     const tbody = document.getElementById('sectorsTableBody');
     const emptyState = document.getElementById('sectorsEmptyState');
     
@@ -853,7 +884,162 @@ function populateSectorDropdowns() {
     }
 }
 
-// Funções para Filtros de Atividades - IMPLEMENTADAS
+function openModal() {
+    console.log('Opening activity modal');
+    currentEditId = null;
+    document.getElementById('modalTitle').textContent = 'Nova Atividade';
+    populateResponsibleDropdown();
+    document.getElementById('activityForm').reset();
+    document.getElementById('activityId').value = '';
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').value = today;
+    
+    // Check if modal exists and is initialized
+    if (!activityModal) {
+        activityModal = new bootstrap.Modal(document.getElementById('activityModal'));
+    }
+    
+    activityModal.show();
+}
+
+function editActivity(id) {
+    console.log('Editing activity:', id);
+    const activity = activities.find(a => a.id === id);
+    if (!activity) return;
+    
+    currentEditId = id;
+    document.getElementById('modalTitle').textContent = 'Editar Atividade';
+    populateResponsibleDropdown();
+    document.getElementById('activityId').value = activity.id;
+    document.getElementById('description').value = activity.description;
+    document.getElementById('responsible').value = activity.responsible;
+    document.getElementById('requestingSector').value = activity.requestingSector || '';
+    document.getElementById('startDate').value = activity.startDate;
+    document.getElementById('endDate').value = activity.endDate;
+    document.getElementById('status').value = activity.status;
+    document.getElementById('classification').value = activity.classification || '';
+    document.getElementById('notes').value = activity.notes || '';
+    
+    activityModal.show();
+}
+
+function saveActivity() {
+    console.log('Saving activity...');
+    const form = document.getElementById('activityForm');
+    if (!form) {
+        console.error('Activity form not found');
+        showNotification('Formulário não encontrado', 'error');
+        return;
+    }
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const activityId = document.getElementById('activityId').value;
+    const activityData = {
+        description: document.getElementById('description').value.trim(),
+        responsible: document.getElementById('responsible').value,
+        requestingSector: document.getElementById('requestingSector').value.trim(),
+        startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value,
+        status: document.getElementById('status').value,
+        classification: document.getElementById('classification').value,
+        notes: document.getElementById('notes').value.trim(),
+        created_at: new Date().toISOString()
+    };
+    
+    if (!activityId) {
+        activityData.id = generateActivityId();
+        activities.push(activityData);
+        console.log('New activity added:', activityData);
+    } else {
+        const index = activities.findIndex(a => a.id === activityId);
+        if (index !== -1) {
+            activities[index] = { ...activities[index], ...activityData };
+            console.log('Activity updated:', activityData);
+        }
+    }
+    
+    // Salvar no localStorage
+    localStorage.setItem('activities', JSON.stringify(activities));
+    console.log('Activities saved to localStorage:', activities.length);
+    
+    // Tentar salvar no Supabase
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('activities').upsert(activityData).then(({ error }) => {
+            if (error) {
+                console.error('Erro ao salvar atividade no Supabase:', error);
+            } else {
+                console.log('Atividade salva no Supabase com sucesso');
+            }
+        });
+    }
+    
+    // Atualizar interface
+    renderFilteredActivities(activities);
+    renderSectorsTables();
+    
+    // Fechar modal
+    if (activityModal) {
+        activityModal.hide();
+    }
+    
+    showNotification(activityId ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
+    console.log('Activity save completed successfully');
+}
+
+// Profile Image Upload - Nova implementação simples
+document.getElementById('profileImageInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validar arquivo
+    if (file.size > 2 * 1024 * 1024) {
+        showNotification('A imagem deve ter no máximo 2MB.', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    if (!file.type.match('image.*')) {
+        showNotification('Selecione apenas arquivos de imagem.', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Ler arquivo
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        // Salvar no perfil
+        userProfile.avatar = e.target.result;
+        
+        // Salvar no localStorage
+        const profiles = JSON.parse(localStorage.getItem('userProfiles') || '{}');
+        profiles[currentUser.email] = userProfile;
+        localStorage.setItem('userProfiles', JSON.stringify(profiles));
+        
+        // Atualizar interface
+        updateSidebarProfile();
+        loadUserProfile();
+        
+        // Atualizar avatar grande na página de perfil
+        const avatarLarge = document.getElementById('profileAvatarLarge');
+        if (avatarLarge) {
+            avatarLarge.innerHTML = `<img src="${e.target.result}" alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">`;
+        }
+        
+        showNotification('Foto de perfil atualizada com sucesso!');
+    };
+    
+    reader.onerror = function() {
+        showNotification('Erro ao ler o arquivo.', 'error');
+    };
+    
+    reader.readAsDataURL(file);
+});
 function toggleFilterDropdown() {
     console.log('Toggling filter dropdown');
     const dropdown = document.querySelector('#filterDropdown + .dropdown-menu');
