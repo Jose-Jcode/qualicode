@@ -37,8 +37,17 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
     
-    <!-- Supabase Client -->
+    <!-- Supabase Client - garantir carregamento antes do script.js -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Verificar se Supabase foi carregado
+        if (typeof window.supabase === 'undefined') {
+            console.error('Supabase não foi carregado corretamente');
+        } else {
+            console.log('Supabase carregado com sucesso');
+        }
+    </script>
     
     <!-- Custom Styles com preload -->
     <link href="styles.css" rel="stylesheet">

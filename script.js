@@ -2,8 +2,23 @@
 const SUPABASE_URL = 'https://gqcmjiikptcjtojtsvjg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxY21qaWlrcHRjanRvanRzdmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODM0MzQsImV4cCI6MjA4NTE1OTQzNH0.k0Ox-LVACHWglB-EPPDwnrEgg4LiNm5wJWkf9NoIeDU';
 
-// Inicializar Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Inicializar Supabase com verificação
+let supabase;
+if (typeof window.supabase !== 'undefined') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase client initialized successfully');
+} else {
+    console.error('Supabase library not loaded. Falling back to localStorage only.');
+    // Criar cliente mock para evitar erros
+    supabase = {
+        from: () => ({
+            select: () => Promise.resolve({ data: null, error: new Error('Supabase not available') }),
+            insert: () => Promise.resolve({ data: null, error: new Error('Supabase not available') }),
+            upsert: () => Promise.resolve({ data: null, error: new Error('Supabase not available') }),
+            delete: () => Promise.resolve({ data: null, error: new Error('Supabase not available') })
+        })
+    };
+}
 
 // Variáveis globais
 let currentUser = null;
@@ -369,8 +384,10 @@ async function createDefaultSectors() {
     }
 }
 
-// Criar admin padrão
+// Criar admin padrão com fallback
 async function createDefaultAdmin() {
+    console.log('Tentando criar admin padrão...');
+    
     const defaultAdmin = {
         id: 'admin',
         name: 'Administrador',
@@ -390,18 +407,33 @@ async function createDefaultAdmin() {
     };
     
     try {
-        const { error } = await supabase
-            .from('users')
-            .insert(defaultAdmin);
-            
-        if (error) {
-            console.error('Erro ao criar admin padrão:', error);
+        if (typeof supabase.from === 'function') {
+            const { error } = await supabase
+                .from('users')
+                .insert(defaultAdmin);
+                
+            if (error) {
+                console.error('Erro ao criar admin padrão no Supabase:', error);
+                // Fallback para localStorage
+                localStorage.setItem('users', JSON.stringify([defaultAdmin]));
+                users = [defaultAdmin];
+                console.log('Admin criado no localStorage como fallback');
+            } else {
+                users = [defaultAdmin];
+                console.log('Admin padrão criado no Supabase com sucesso');
+            }
         } else {
+            // Fallback direto para localStorage
+            localStorage.setItem('users', JSON.stringify([defaultAdmin]));
             users = [defaultAdmin];
-            console.log('Admin padrão criado no Supabase');
+            console.log('Admin criado no localStorage (Supabase não disponível)');
         }
     } catch (error) {
         console.error('Erro ao criar admin padrão:', error);
+        // Fallback garantido
+        localStorage.setItem('users', JSON.stringify([defaultAdmin]));
+        users = [defaultAdmin];
+        console.log('Admin criado no localStorage (fallback de erro)');
     }
 }
 
