@@ -94,6 +94,13 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Remover triggers existentes antes de criar
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+DROP TRIGGER IF EXISTS update_sectors_updated_at ON sectors;
+DROP TRIGGER IF EXISTS update_activities_updated_at ON activities;
+DROP TRIGGER IF EXISTS update_projects_updated_at ON projects;
+
+-- Criar triggers
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -107,10 +114,38 @@ CREATE TRIGGER update_projects_updated_at BEFORE UPDATE ON projects
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Row Level Security (RLS)
+-- Remover RLS existente antes de habilitar
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE sectors DISABLE ROW LEVEL SECURITY;
+ALTER TABLE activities DISABLE ROW LEVEL SECURITY;
+ALTER TABLE projects DISABLE ROW LEVEL SECURITY;
+
+-- Habilitar RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sectors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+
+-- Remover políticas existentes antes de criar
+DROP POLICY IF EXISTS "Users can view all users" ON users;
+DROP POLICY IF EXISTS "Users can insert users" ON users;
+DROP POLICY IF EXISTS "Users can update users" ON users;
+DROP POLICY IF EXISTS "Users can delete users" ON users;
+
+DROP POLICY IF EXISTS "Users can view all sectors" ON sectors;
+DROP POLICY IF EXISTS "Users can insert sectors" ON sectors;
+DROP POLICY IF EXISTS "Users can update sectors" ON sectors;
+DROP POLICY IF EXISTS "Users can delete sectors" ON sectors;
+
+DROP POLICY IF EXISTS "Users can view all activities" ON activities;
+DROP POLICY IF EXISTS "Users can insert activities" ON activities;
+DROP POLICY IF EXISTS "Users can update activities" ON activities;
+DROP POLICY IF EXISTS "Users can delete activities" ON activities;
+
+DROP POLICY IF EXISTS "Users can view all projects" ON projects;
+DROP POLICY IF EXISTS "Users can insert projects" ON projects;
+DROP POLICY IF EXISTS "Users can update projects" ON projects;
+DROP POLICY IF EXISTS "Users can delete projects" ON projects;
 
 -- Políticas de segurança
 -- Usuários podem ver todos os dados (sistema colaborativo)
