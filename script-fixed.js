@@ -79,17 +79,11 @@ function ensureAdminExists() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
     
-    // Carregar dados do localStorage primeiro
-    loadDataFromLocalStorage();
-    
     // Garantir que admin exista
     ensureAdminExists();
     
-    // Tentar carregar do Supabase (se disponível)
-    loadUsers();
-    loadSectors();
-    loadActivities();
-    loadProjects();
+    // Carregar TUDO do Supabase
+    loadAllDataFromSupabase();
     
     // Check authentication
     if (!checkAuthentication()) {
@@ -102,145 +96,47 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeApplication();
 });
 
-// Função para carregar dados do localStorage
-function loadDataFromLocalStorage() {
-    console.log('Loading data from localStorage');
+// Carregar TUDO do Supabase - SEM LOCALSTORAGE
+function loadAllDataFromSupabase() {
+    console.log('Loading ALL data from Supabase only');
     
-    // Carregar usuários
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-        users = JSON.parse(storedUsers);
-        console.log('Users loaded from localStorage:', users.length);
-    }
-    
-    // Carregar setores
-    const storedSectors = localStorage.getItem('sectors');
-    if (storedSectors) {
-        sectors = JSON.parse(storedSectors);
-        console.log('Sectors loaded from localStorage:', sectors.length);
-    }
-    
-    // Carregar atividades
-    const storedActivities = localStorage.getItem('activities');
-    if (storedActivities) {
-        activities = JSON.parse(storedActivities);
-        console.log('Activities loaded from localStorage:', activities.length);
-    }
-    
-    // Carregar projetos
-    const storedProjects = localStorage.getItem('projects');
-    if (storedProjects) {
-        projects = JSON.parse(storedProjects);
-        console.log('Projects loaded from localStorage:', projects.length);
-    }
-}
-
-// Funções para carregar dados do Supabase
-function loadUsers() {
     if (typeof supabaseClient.from === 'function') {
+        // Carregar usuários
         supabaseClient.from('users').select('*').then(({ data, error }) => {
             if (error) {
-                console.error('Erro ao carregar usuários do Supabase:', error);
+                console.error('Erro ao carregar usuários:', error);
             } else if (data && data.length > 0) {
                 users = data;
-                localStorage.setItem('users', JSON.stringify(users));
                 console.log('Users loaded from Supabase:', users.length);
             }
         });
-    }
-}
-
-function loadSectors() {
-    // Carregar do localStorage primeiro
-    const storedSectors = localStorage.getItem('sectors');
-    if (storedSectors) {
-        sectors = JSON.parse(storedSectors);
-        console.log('Sectors loaded from localStorage:', sectors.length);
-    }
-    
-    // Tentar carregar do Supabase e MESCLAR dados
-    if (typeof supabaseClient.from === 'function') {
+        
+        // Carregar setores
         supabaseClient.from('sectors').select('*').then(({ data, error }) => {
             if (error) {
-                console.error('Erro ao carregar setores do Supabase:', error);
+                console.error('Erro ao carregar setores:', error);
             } else if (data && data.length > 0) {
-                console.log('Sectors from Supabase:', data.length);
-                
-                // Mesclar dados: combinar localStorage + Supabase sem duplicatas
-                const combinedSectors = [...sectors];
-                
-                data.forEach(supabaseSector => {
-                    const exists = combinedSectors.find(local => local.id === supabaseSector.id);
-                    if (!exists) {
-                        combinedSectors.push(supabaseSector);
-                        console.log('Added sector from Supabase:', supabaseSector.id);
-                    }
-                });
-                
-                sectors = combinedSectors;
-                localStorage.setItem('sectors', JSON.stringify(sectors));
-                console.log('Total sectors after merge:', sectors.length);
-                
-                // Atualizar interface se já estiver logado
-                if (currentUser) {
-                    renderSectors();
-                    populateSectorDropdowns();
-                    renderSectorsTables();
-                }
+                sectors = data;
+                console.log('Sectors loaded from Supabase:', sectors.length);
             }
         });
-    }
-}
-
-function loadActivities() {
-    // Carregar do localStorage primeiro
-    const storedActivities = localStorage.getItem('activities');
-    if (storedActivities) {
-        activities = JSON.parse(storedActivities);
-        console.log('Activities loaded from localStorage:', activities.length);
-    }
-    
-    // Tentar carregar do Supabase e MESCLAR dados
-    if (typeof supabaseClient.from === 'function') {
+        
+        // Carregar atividades
         supabaseClient.from('activities').select('*').then(({ data, error }) => {
             if (error) {
-                console.error('Erro ao carregar atividades do Supabase:', error);
+                console.error('Erro ao carregar atividades:', error);
             } else if (data && data.length > 0) {
-                console.log('Activities from Supabase:', data.length);
-                
-                // Mesclar dados: combinar localStorage + Supabase sem duplicatas
-                const combinedActivities = [...activities];
-                
-                data.forEach(supabaseActivity => {
-                    const exists = combinedActivities.find(local => local.id === supabaseActivity.id);
-                    if (!exists) {
-                        combinedActivities.push(supabaseActivity);
-                        console.log('Added activity from Supabase:', supabaseActivity.id);
-                    }
-                });
-                
-                activities = combinedActivities;
-                localStorage.setItem('activities', JSON.stringify(activities));
-                console.log('Total activities after merge:', activities.length);
-                
-                // Atualizar interface se já estiver logado
-                if (currentUser) {
-                    renderFilteredActivities(activities);
-                    renderSectorsTables();
-                }
+                activities = data;
+                console.log('Activities loaded from Supabase:', activities.length);
             }
         });
-    }
-}
-
-function loadProjects() {
-    if (typeof supabaseClient.from === 'function') {
+        
+        // Carregar projetos
         supabaseClient.from('projects').select('*').then(({ data, error }) => {
             if (error) {
-                console.error('Erro ao carregar projetos do Supabase:', error);
+                console.error('Erro ao carregar projetos:', error);
             } else if (data && data.length > 0) {
                 projects = data;
-                localStorage.setItem('projects', JSON.stringify(projects));
                 console.log('Projects loaded from Supabase:', projects.length);
             }
         });
@@ -866,31 +762,16 @@ function saveSector() {
     
     // Validar campos obrigatórios
     const sectorName = document.getElementById('sectorName').value.trim();
-    const sectorDescription = document.getElementById('sectorDescription').value.trim();
-    const sectorIcon = document.getElementById('sectorIcon').value;
-    
-    if (!sectorName) {
-        console.error('Sector name is empty');
-        showNotification('Nome do setor é obrigatório', 'error');
-        return;
-    }
-    
-    if (!sectorDescription) {
-        console.error('Sector description is empty');
-        showNotification('Descrição do setor é obrigatória', 'error');
         return;
     }
     
     const sectorId = document.getElementById('sectorId').value;
     const sectorData = {
-        name: sectorName,
-        description: sectorDescription,
-        icon: sectorIcon,
-        responsible: currentUser ? currentUser.name : 'Administrador',
+        name: document.getElementById('sectorName').value.trim(),
+        description: document.getElementById('sectorDescription').value.trim(),
+        icon: document.getElementById('sectorIcon').value,
         created_at: new Date().toISOString()
     };
-    
-    console.log('Sector data:', sectorData);
     
     if (!sectorId) {
         sectorData.id = generateSectorId();
@@ -904,17 +785,15 @@ function saveSector() {
         }
     }
     
-    // Salvar no localStorage
-    localStorage.setItem('sectors', JSON.stringify(sectors));
-    console.log('Sectors saved to localStorage:', sectors.length);
-    
-    // Tentar salvar no Supabase
+    // Salvar DIRETAMENTE no Supabase
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('sectors').upsert(sectorData).then(({ error }) => {
             if (error) {
                 console.error('Erro ao salvar setor no Supabase:', error);
+                showNotification('Erro ao salvar setor', 'error');
             } else {
                 console.log('Setor salvo no Supabase com sucesso');
+                showNotification('Setor salvo com sucesso!');
             }
         });
     }
@@ -922,14 +801,13 @@ function saveSector() {
     // Atualizar interface
     renderSectors();
     populateSectorDropdowns();
-    renderSectorsTables(); // Adicionado para atualizar a tela de atividades
+    renderSectorsTables();
     
     // Fechar modal
     if (sectorModal) {
         sectorModal.hide();
     }
     
-    showNotification(sectorId ? 'Setor atualizado com sucesso!' : 'Setor criado com sucesso!');
     console.log('Sector save completed successfully');
 }
 
@@ -1045,17 +923,15 @@ function deleteSector(id) {
             activity.classification !== id && activity.requestingSector !== sectorName
         );
         
-        // Salvar no localStorage
-        localStorage.setItem('sectors', JSON.stringify(sectors));
-        localStorage.setItem('activities', JSON.stringify(activities));
-        
-        // Tentar excluir do Supabase
+        // Excluir DIRETAMENTE do Supabase
         if (typeof supabaseClient.from === 'function') {
             supabaseClient.from('sectors').delete().eq('id', id).then(({ error }) => {
                 if (error) {
                     console.error('Erro ao excluir setor do Supabase:', error);
+                    showNotification('Erro ao excluir setor', 'error');
                 } else {
                     console.log('Setor excluído do Supabase com sucesso');
+                    showNotification('Setor excluído com sucesso!');
                 }
             });
             
@@ -1075,7 +951,6 @@ function deleteSector(id) {
         renderSectorsTables();
         renderFilteredActivities(activities);
         
-        showNotification('Setor e atividades associadas excluídos com sucesso!');
         console.log('Sector and associated activities deleted successfully');
     }
 }
@@ -1218,26 +1093,28 @@ function saveActivity() {
         }
     }
     
-    // Salvar no localStorage IMEDIATAMENTE
-    localStorage.setItem('activities', JSON.stringify(activities));
-    console.log('Activities saved to localStorage:', activities.length);
-    
-    // Tentar salvar no Supabase em background
+    // Salvar DIRETAMENTE no Supabase
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('activities').upsert(activityData).then(({ error }) => {
             if (error) {
                 console.error('Erro ao salvar atividade no Supabase:', error);
+                showNotification('Erro ao salvar atividade', 'error');
             } else {
                 console.log('Atividade salva no Supabase com sucesso');
+                showNotification('Atividade salva com sucesso!');
             }
         });
     }
     
-    // Atualizar interface IMEDIATAMENTE
+    // Atualizar interface
     renderFilteredActivities(activities);
     renderSectorsTables();
     
-    showNotification(currentEditId ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
+    // Fechar modal
+    if (activityModal) {
+        activityModal.hide();
+    }
+    
     console.log('Activity save completed successfully');
 }
 
@@ -1364,31 +1241,28 @@ function saveProject() {
         }
     }
     
-    // Salvar no localStorage
-    localStorage.setItem('projects', JSON.stringify(projects));
-    console.log('Projects saved to localStorage:', projects.length);
-    
-    // Tentar salvar no Supabase
+    // Salvar DIRETAMENTE no Supabase
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('projects').upsert(projectData).then(({ error }) => {
             if (error) {
                 console.error('Erro ao salvar projeto no Supabase:', error);
+                showNotification('Erro ao salvar projeto', 'error');
             } else {
                 console.log('Projeto salvo no Supabase com sucesso');
+                showNotification('Projeto salvo com sucesso!');
             }
         });
     }
     
     // Atualizar interface
     renderProjects();
-    renderSectorsTables(); // Adicionado para atualizar a tela de atividades
+    renderSectorsTables();
     
     // Fechar modal
     if (projectModal) {
         projectModal.hide();
     }
     
-    showNotification(projectId ? 'Projeto atualizado com sucesso!' : 'Projeto criado com sucesso!');
     console.log('Project save completed successfully');
 }
 
