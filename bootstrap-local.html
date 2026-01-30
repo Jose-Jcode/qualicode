@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap Local Test</title>
+    <!-- Bootstrap CSS Local -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .test-box { 
+            padding: 20px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teste Bootstrap Local</h1>
+        
+        <div class="test-box">
+            <h2>Teste de Botões</h2>
+            <button class="btn btn-primary">Botão Primário</button>
+            <button class="btn btn-secondary">Botão Secundário</button>
+            <button class="btn btn-success">Botão Sucesso</button>
+        </div>
+        
+        <div class="test-box">
+            <h2>Teste de Ícones</h2>
+            <i class="bi bi-person-fill"></i> Usuário
+            <i class="bi bi-gear-fill"></i> Configurações
+            <i class="bi bi-shield-check"></i> Segurança
+        </div>
+        
+        <div class="test-box">
+            <h2>Teste de Formulário</h2>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" placeholder="email@exemplo.com">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Senha</label>
+                <input type="password" class="form-control" placeholder="Senha">
+            </div>
+            <button class="btn btn-primary">Login</button>
+        </div>
+        
+        <div class="test-box">
+            <h2>Teste de Alertas</h2>
+            <div class="alert alert-success">Sucesso!</div>
+            <div class="alert alert-warning">Atenção!</div>
+            <div class="alert alert-danger">Erro!</div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Local -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

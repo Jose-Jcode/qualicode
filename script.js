@@ -3,14 +3,14 @@ const SUPABASE_URL = 'https://gqcmjiikptcjtojtsvjg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxY21qaWlrcHRjanRvanRzdmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODM0MzQsImV4cCI6MjA4NTE1OTQzNH0.k0Ox-LVACHWglB-EPPDwnrEgg4LiNm5wJWkf9NoIeDU';
 
 // Inicializar Supabase com verificação
-let supabase;
+let supabaseClient;
 if (typeof window.supabase !== 'undefined') {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase client initialized successfully');
 } else {
     console.error('Supabase library not loaded. Falling back to localStorage only.');
     // Criar cliente mock para evitar erros
-    supabase = {
+    supabaseClient = {
         from: () => ({
             select: () => Promise.resolve({ data: null, error: new Error('Supabase not available') }),
             insert: () => Promise.resolve({ data: null, error: new Error('Supabase not available') }),
@@ -19,6 +19,9 @@ if (typeof window.supabase !== 'undefined') {
         })
     };
 }
+
+// Alias para compatibilidade
+const supabase = supabaseClient;
 
 // Variáveis globais
 let currentUser = null;
