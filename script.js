@@ -19,33 +19,48 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoginScreen();
     }
     
-    // Initialize modals
-    activityModal = new bootstrap.Modal(document.getElementById('activityModal'));
-    projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
-    sectorModal = new bootstrap.Modal(document.getElementById('sectorModal'));
-    userModal = new bootstrap.Modal(document.getElementById('userModal'));
-    
-    // Load data
-    loadSectors();
-    loadActivities();
-    loadProjects();
-    loadUsers();
-    
-    // Populate dropdowns that depend on users
-    setTimeout(() => {
-        populateResponsibleDropdown();
-    }, 100);
-    
-    // Setup event listeners
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        login();
-    });
-    
-    document.getElementById('userForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveUser();
-    });
+    // Wait for Bootstrap to be available
+    setTimeout(function() {
+        try {
+            // Initialize modals only if bootstrap is available
+            if (typeof bootstrap !== 'undefined') {
+                activityModal = new bootstrap.Modal(document.getElementById('activityModal'));
+                projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
+                sectorModal = new bootstrap.Modal(document.getElementById('sectorModal'));
+                userModal = new bootstrap.Modal(document.getElementById('userModal'));
+            }
+        } catch (error) {
+            console.log('Modals initialization skipped:', error.message);
+        }
+        
+        // Load data
+        loadSectors();
+        loadActivities();
+        loadProjects();
+        loadUsers();
+        
+        // Populate dropdowns that depend on users
+        setTimeout(() => {
+            populateResponsibleDropdown();
+        }, 100);
+        
+        // Setup event listeners
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                login();
+            });
+        }
+        
+        const userForm = document.getElementById('userForm');
+        if (userForm) {
+            userForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveUser();
+            });
+        }
+    }, 500); // Wait 500ms for scripts to load
     
     // Initialize UI if authenticated
     if (currentUser) {
