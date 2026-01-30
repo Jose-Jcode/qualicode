@@ -489,34 +489,55 @@ function saveSector() {
     const form = document.getElementById('sectorForm');
     if (!form) {
         console.error('Sector form not found');
+        showNotification('Formulário não encontrado', 'error');
         return;
     }
     
-    if (!form.checkValidity()) {
-        form.reportValidity();
+    console.log('Form found, validating...');
+    
+    // Validar campos obrigatórios
+    const sectorName = document.getElementById('sectorName').value.trim();
+    const sectorDescription = document.getElementById('sectorDescription').value.trim();
+    const sectorIcon = document.getElementById('sectorIcon').value;
+    
+    if (!sectorName) {
+        console.error('Sector name is empty');
+        showNotification('Nome do setor é obrigatório', 'error');
+        return;
+    }
+    
+    if (!sectorDescription) {
+        console.error('Sector description is empty');
+        showNotification('Descrição do setor é obrigatória', 'error');
         return;
     }
     
     const sectorId = document.getElementById('sectorId').value;
     const sectorData = {
-        name: document.getElementById('sectorName').value.trim(),
-        description: document.getElementById('sectorDescription').value.trim(),
-        responsible: document.getElementById('sectorResponsible').value.trim(),
+        name: sectorName,
+        description: sectorDescription,
+        icon: sectorIcon,
+        responsible: currentUser ? currentUser.name : 'Administrador',
         created_at: new Date().toISOString()
     };
+    
+    console.log('Sector data:', sectorData);
     
     if (!sectorId) {
         sectorData.id = generateSectorId();
         sectors.push(sectorData);
+        console.log('New sector added:', sectorData);
     } else {
         const index = sectors.findIndex(s => s.id === sectorId);
         if (index !== -1) {
             sectors[index] = { ...sectors[index], ...sectorData };
+            console.log('Sector updated:', sectorData);
         }
     }
     
     // Salvar no localStorage
     localStorage.setItem('sectors', JSON.stringify(sectors));
+    console.log('Sectors saved to localStorage:', sectors.length);
     
     // Tentar salvar no Supabase
     if (typeof supabaseClient.from === 'function') {
@@ -529,14 +550,17 @@ function saveSector() {
         });
     }
     
+    // Atualizar interface
     renderSectors();
     populateSectorDropdowns();
     
+    // Fechar modal
     if (sectorModal) {
         sectorModal.hide();
     }
     
     showNotification(sectorId ? 'Setor atualizado com sucesso!' : 'Setor criado com sucesso!');
+    console.log('Sector save completed successfully');
 }
 
 function generateSectorId() {
@@ -554,7 +578,38 @@ function renderSectors() {
     const emptyState = document.getElementById('sectorsEmptyState');
     
     if (!tbody) {
-        console.log('Sectors table body not found');
+        console.log('Sectors table body not found, looking for alternative containers');
+        // Tentar encontrar container alternativo
+        const altContainer = document.getElementById('sectorsContainer');
+        if (altContainer) {
+            console.log('Found sectorsContainer, rendering there');
+            altContainer.innerHTML = sectors.map(sector => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="sector-icon me-3">
+                                    <i class="bi ${sector.icon || 'bi-building'}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">${sector.name}</h6>
+                                    <p class="text-muted small mb-0">${sector.description || ''}</p>
+                                    <small class="text-muted">Responsável: ${sector.responsible || '-'}</small>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editSector('${sector.id}')" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteSector('${sector.id}')" title="Excluir">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
         return;
     }
     
@@ -571,7 +626,7 @@ function renderSectors() {
             <td>
                 <div class="d-flex align-items-center">
                     <div class="sector-icon me-2">
-                        <i class="bi bi-building"></i>
+                        <i class="bi ${sector.icon || 'bi-building'}"></i>
                     </div>
                     <div class="fw-semibold">${sector.name}</div>
                 </div>
@@ -594,6 +649,8 @@ function renderSectors() {
             </td>
         </tr>
     `).join('');
+    
+    console.log('Sectors rendered successfully:', sectors.length);
 }
 
 function editSector(id) {
@@ -606,7 +663,7 @@ function editSector(id) {
     document.getElementById('sectorId').value = sector.id;
     document.getElementById('sectorName').value = sector.name;
     document.getElementById('sectorDescription').value = sector.description || '';
-    document.getElementById('sectorResponsible').value = sector.responsible || '';
+    document.getElementById('sectorIcon').value = sector.icon || 'bi-building';
     
     if (sectorModal) {
         sectorModal.show();
