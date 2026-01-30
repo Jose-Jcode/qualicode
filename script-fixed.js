@@ -262,15 +262,108 @@ async function loadUsers() {
     }
 }
 
-// Funções placeholder para evitar erros
-function showPage(page) { console.log('Showing page:', page); }
-function renderProjects() { console.log('Rendering projects'); }
-function renderSectorsTables() { console.log('Rendering sectors tables'); }
-function updateNavigationVisibility() { console.log('Updating navigation'); }
-function initializeActivitySlider() { console.log('Initializing activity slider'); }
-function populateDashboardFilters() { console.log('Populating dashboard filters'); }
-function refreshDashboard() { console.log('Refreshing dashboard'); }
-function loadUserProfile() { console.log('Loading user profile'); }
+// Funções placeholder para evitar erros - IMPLEMENTADAS
+function showPage(page) { 
+    console.log('Showing page:', page);
+    
+    // Esconder todas as páginas
+    const pages = document.querySelectorAll('.page-content');
+    pages.forEach(p => p.style.display = 'none');
+    
+    // Mostrar página solicitada
+    const targetPage = document.getElementById(page + 'Page');
+    if (targetPage) {
+        targetPage.style.display = 'block';
+    }
+    
+    // Atualizar navegação
+    updateActiveNavItem(page);
+}
+
+function updateActiveNavItem(page) {
+    // Remover active de todos os itens
+    const navItems = document.querySelectorAll('.nav-link');
+    navItems.forEach(item => item.classList.remove('active'));
+    
+    // Adicionar active ao item atual
+    const activeItem = document.querySelector('[onclick="showPage(\'' + page + '\')"]');
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+}
+
+function renderProjects() { 
+    console.log('Rendering projects');
+    const tbody = document.getElementById('projectsTableBody');
+    if (tbody) {
+        tbody.innerHTML = projects.map(project => `
+            <tr>
+                <td>${project.id}</td>
+                <td>${project.name}</td>
+                <td>${project.status}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="editProject('${project.id}')">Editar</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function renderSectorsTables() { 
+    console.log('Rendering sectors tables');
+    // Implementação básica
+    const activitiesContainer = document.getElementById('activitiesContainer');
+    if (activitiesContainer && activities.length > 0) {
+        activitiesContainer.innerHTML = activities.map(activity => `
+            <div class="activity-item">
+                <h5>${activity.description}</h5>
+                <p>Status: ${activity.status}</p>
+            </div>
+        `).join('');
+    }
+}
+
+function updateNavigationVisibility() { 
+    console.log('Updating navigation');
+    // Mostrar/esconder itens baseado em permissões
+    if (currentUser && currentUser.permissions) {
+        const dashboardItem = document.querySelector('[onclick="showPage(\'dashboard\')"]');
+        const usersItem = document.querySelector('[onclick="showPage(\'users\')"]');
+        
+        if (dashboardItem) {
+            dashboardItem.style.display = currentUser.permissions.dashboard ? 'block' : 'none';
+        }
+        if (usersItem) {
+            usersItem.style.display = currentUser.permissions.users ? 'block' : 'none';
+        }
+    }
+}
+
+function initializeActivitySlider() { 
+    console.log('Initializing activity slider');
+    // Placeholder para slider de atividades
+}
+
+function populateDashboardFilters() { 
+    console.log('Populating dashboard filters');
+    // Placeholder para filtros do dashboard
+}
+
+function refreshDashboard() { 
+    console.log('Refreshing dashboard');
+    // Placeholder para refresh do dashboard
+}
+
+function loadUserProfile() { 
+    console.log('Loading user profile');
+    const profileName = document.getElementById('profileName');
+    const profileEmail = document.getElementById('profileEmail');
+    
+    if (currentUser) {
+        if (profileName) profileName.textContent = currentUser.name;
+        if (profileEmail) profileEmail.textContent = currentUser.email;
+    }
+}
 function showNotification(message, type = 'success') { 
     console.log('Notification:', message, type);
     // Criar notificação visual simples
