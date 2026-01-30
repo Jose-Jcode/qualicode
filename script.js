@@ -303,8 +303,14 @@ function populateResponsibleDropdown() {
     const userProfiles = localStorage.getItem('userProfiles');
     const allProfiles = userProfiles ? JSON.parse(userProfiles) : {};
     
-    // Adicionar usuários como opções
+    // Adicionar usuários como opções, exceto administrador
     users.forEach(user => {
+        // Excluir administrador (email admin@qualicode.com)
+        if (user.email === 'admin@qualicode.com') {
+            console.log('Skipping admin user:', user.name);
+            return; // Pular administrador
+        }
+        
         // Usar nome do perfil se disponível, caso contrário usar nome do usuário
         const profile = allProfiles[user.email];
         const displayName = profile && profile.name ? profile.name : user.name;
