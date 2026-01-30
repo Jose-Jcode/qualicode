@@ -151,28 +151,50 @@ function loadUsers() {
 }
 
 function loadSectors() {
+    // Primeiro carregar do localStorage
+    const storedSectors = localStorage.getItem('sectors');
+    if (storedSectors) {
+        sectors = JSON.parse(storedSectors);
+        console.log('Sectors loaded from localStorage:', sectors.length);
+    }
+    
+    // Depois tentar carregar do Supabase (se disponível)
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('sectors').select('*').then(({ data, error }) => {
             if (error) {
                 console.error('Erro ao carregar setores do Supabase:', error);
             } else if (data && data.length > 0) {
-                sectors = data;
-                localStorage.setItem('sectors', JSON.stringify(sectors));
-                console.log('Sectors loaded from Supabase:', sectors.length);
+                // Só sobrescrever se não tiver dados locais
+                if (!storedSectors) {
+                    sectors = data;
+                    localStorage.setItem('sectors', JSON.stringify(sectors));
+                    console.log('Sectors loaded from Supabase:', sectors.length);
+                }
             }
         });
     }
 }
 
 function loadActivities() {
+    // Primeiro carregar do localStorage
+    const storedActivities = localStorage.getItem('activities');
+    if (storedActivities) {
+        activities = JSON.parse(storedActivities);
+        console.log('Activities loaded from localStorage:', activities.length);
+    }
+    
+    // Depois tentar carregar do Supabase (se disponível)
     if (typeof supabaseClient.from === 'function') {
         supabaseClient.from('activities').select('*').then(({ data, error }) => {
             if (error) {
                 console.error('Erro ao carregar atividades do Supabase:', error);
             } else if (data && data.length > 0) {
-                activities = data;
-                localStorage.setItem('activities', JSON.stringify(activities));
-                console.log('Activities loaded from Supabase:', activities.length);
+                // Só sobrescrever se não tiver dados locais
+                if (!storedActivities) {
+                    activities = data;
+                    localStorage.setItem('activities', JSON.stringify(activities));
+                    console.log('Activities loaded from Supabase:', activities.length);
+                }
             }
         });
     }
@@ -978,12 +1000,50 @@ function editSector(id) {
 
 function deleteSector(id) {
     if (confirm('Tem certeza que deseja excluir este setor?')) {
+        // Encontrar setor antes de remover
+        const sectorToDelete = sectors.find(s => s.id === id);
+        const sectorName = sectorToDelete?.name || '';
+        
+        // Remover setor do array
         sectors = sectors.filter(s => s.id !== id);
+        
+        // Remover atividades associadas a este setor
+        activities = activities.filter(activity => 
+            activity.classification !== id && activity.requestingSector !== sectorName
+        );
+        
+        // Salvar no localStorage
         localStorage.setItem('sectors', JSON.stringify(sectors));
+        localStorage.setItem('activities', JSON.stringify(activities));
+        
+        // Tentar excluir do Supabase
+        if (typeof supabaseClient.from === 'function') {
+            supabaseClient.from('sectors').delete().eq('id', id).then(({ error }) => {
+                if (error) {
+                    console.error('Erro ao excluir setor do Supabase:', error);
+                } else {
+                    console.log('Setor excluído do Supabase com sucesso');
+                }
+            });
+            
+            // Excluir atividades associadas do Supabase
+            supabaseClient.from('activities').delete().or(`classification.eq.${id},requestingSector.eq.${sectorName}`).then(({ error }) => {
+                if (error) {
+                    console.error('Erro ao excluir atividades do Supabase:', error);
+                } else {
+                    console.log('Atividades associadas excluídas do Supabase com sucesso');
+                }
+            });
+        }
+        
+        // Atualizar interface
         renderSectors();
         populateSectorDropdowns();
-        renderSectorsTables(); // Adicionado para atualizar a tela de atividades
-        showNotification('Setor excluído com sucesso!');
+        renderSectorsTables();
+        renderFilteredActivities(activities);
+        
+        showNotification('Setor e atividades associadas excluídos com sucesso!');
+        console.log('Sector and associated activities deleted successfully');
     }
 }
 
