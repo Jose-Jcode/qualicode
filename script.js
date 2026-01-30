@@ -53,24 +53,6 @@ function initializeApplication() {
             projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
             sectorModal = new bootstrap.Modal(document.getElementById('sectorModal'));
             userModal = new bootstrap.Modal(document.getElementById('userModal'));
-            
-            // Initialize dropdowns with explicit configuration
-            const filterDropdown = document.getElementById('filterDropdown');
-            const settingsDropdown = document.getElementById('settingsDropdown');
-            
-            if (filterDropdown) {
-                new bootstrap.Dropdown(filterDropdown, {
-                    autoClose: 'outside',
-                    reference: 'toggle'
-                });
-            }
-            
-            if (settingsDropdown) {
-                new bootstrap.Dropdown(settingsDropdown, {
-                    autoClose: 'outside',
-                    reference: 'toggle'
-                });
-            }
         }
     } catch (error) {
         console.log('Bootstrap initialization error:', error.message);
@@ -116,6 +98,35 @@ function initializeApplication() {
         });
     }
 }
+
+// Funções diretas para dropdowns
+function toggleFilterDropdown() {
+    const dropdown = document.getElementById('filterDropdown').nextElementSibling;
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+        // Fechar outros dropdowns
+        document.getElementById('settingsDropdown').nextElementSibling.classList.remove('show');
+    }
+}
+
+function toggleSettingsDropdown() {
+    const dropdown = document.getElementById('settingsDropdown').nextElementSibling;
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+        // Fechar outros dropdowns
+        document.getElementById('filterDropdown').nextElementSibling.classList.remove('show');
+    }
+}
+
+// Fechar dropdowns ao clicar fora
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('#filterDropdown') && !event.target.closest('#filterDropdown').nextElementSibling) {
+        document.getElementById('filterDropdown').nextElementSibling.classList.remove('show');
+    }
+    if (!event.target.closest('#settingsDropdown') && !event.target.closest('#settingsDropdown').nextElementSibling) {
+        document.getElementById('settingsDropdown').nextElementSibling.classList.remove('show');
+    }
+});
 
 function loadSectors() {
     const stored = localStorage.getItem('sectors');
