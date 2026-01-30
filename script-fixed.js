@@ -254,6 +254,33 @@ function initializeApplication() {
             saveUser();
         });
     }
+    
+    // Setup sector form listener
+    const sectorForm = document.getElementById('sectorForm');
+    if (sectorForm) {
+        sectorForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSector();
+        });
+    }
+    
+    // Fechar dropdowns ao clicar fora
+    document.addEventListener('click', function(e) {
+        const filterButton = document.getElementById('filterDropdown');
+        const settingsButton = document.getElementById('settingsDropdown');
+        const filterDropdown = document.querySelector('#filterDropdown + .dropdown-menu');
+        const settingsDropdown = document.querySelector('#settingsDropdown + .dropdown-menu');
+        
+        // Fechar dropdown de filtros se clicar fora
+        if (filterButton && filterDropdown && !filterButton.contains(e.target) && !filterDropdown.contains(e.target)) {
+            filterDropdown.style.display = 'none';
+        }
+        
+        // Fechar dropdown de configurações se clicar fora
+        if (settingsButton && settingsDropdown && !settingsButton.contains(e.target) && !settingsDropdown.contains(e.target)) {
+            settingsDropdown.style.display = 'none';
+        }
+    });
 }
 
 // Carregar usuários do Supabase (com fallback)
@@ -620,10 +647,10 @@ function populateSectorDropdowns() {
 // Funções para Filtros de Atividades - IMPLEMENTADAS
 function toggleFilterDropdown() {
     console.log('Toggling filter dropdown');
-    const dropdown = document.getElementById('filterDropdown');
+    const dropdown = document.querySelector('#filterDropdown + .dropdown-menu');
     
     if (!dropdown) {
-        console.error('Filter dropdown not found');
+        console.error('Filter dropdown menu not found');
         return;
     }
     
@@ -633,12 +660,41 @@ function toggleFilterDropdown() {
     } else {
         dropdown.style.display = 'block';
         // Position dropdown
-        const button = document.getElementById('filterButton');
+        const button = document.getElementById('filterDropdown');
         if (button) {
             const rect = button.getBoundingClientRect();
             dropdown.style.position = 'fixed';
             dropdown.style.top = rect.bottom + 'px';
+            dropdown.style.right = 'auto';
             dropdown.style.left = rect.left + 'px';
+            dropdown.style.zIndex = '1000';
+            dropdown.style.minWidth = '250px';
+        }
+    }
+}
+
+function toggleSettingsDropdown() {
+    console.log('Toggling settings dropdown');
+    const dropdown = document.querySelector('#settingsDropdown + .dropdown-menu');
+    
+    if (!dropdown) {
+        console.error('Settings dropdown menu not found');
+        return;
+    }
+    
+    // Toggle visibility
+    if (dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+    } else {
+        dropdown.style.display = 'block';
+        // Position dropdown
+        const button = document.getElementById('settingsDropdown');
+        if (button) {
+            const rect = button.getBoundingClientRect();
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = rect.bottom + 'px';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+            dropdown.style.left = 'auto';
             dropdown.style.zIndex = '1000';
             dropdown.style.minWidth = '200px';
         }
@@ -647,6 +703,12 @@ function toggleFilterDropdown() {
 
 function applyActivityFilters() {
     console.log('Applying activity filters');
+    
+    // Fechar dropdown de filtros
+    const filterDropdown = document.querySelector('#filterDropdown + .dropdown-menu');
+    if (filterDropdown) {
+        filterDropdown.style.display = 'none';
+    }
     
     const statusFilter = document.getElementById('statusFilter')?.value || '';
     const sectorFilter = document.getElementById('sectorFilter')?.value || '';
@@ -697,13 +759,6 @@ function applyActivityFilters() {
     }
     
     renderFilteredActivities(filteredActivities);
-    
-    // Fechar dropdown
-    const dropdown = document.getElementById('filterDropdown');
-    if (dropdown) {
-        dropdown.style.display = 'none';
-    }
-    
     showNotification(`${filteredActivities.length} atividades encontradas`);
 }
 
@@ -771,10 +826,10 @@ function clearActivityFilters() {
     // Renderizar todas as atividades
     renderFilteredActivities(activities);
     
-    // Fechar dropdown
-    const dropdown = document.getElementById('filterDropdown');
-    if (dropdown) {
-        dropdown.style.display = 'none';
+    // Fechar dropdown de filtros
+    const filterDropdown = document.querySelector('#filterDropdown + .dropdown-menu');
+    if (filterDropdown) {
+        filterDropdown.style.display = 'none';
     }
     
     showNotification('Filtros limpos');
