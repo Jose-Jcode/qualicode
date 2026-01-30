@@ -147,52 +147,19 @@ DROP POLICY IF EXISTS "Users can insert projects" ON projects;
 DROP POLICY IF EXISTS "Users can update projects" ON projects;
 DROP POLICY IF EXISTS "Users can delete projects" ON projects;
 
--- Políticas de segurança
--- Usuários podem ver todos os dados (sistema colaborativo)
-CREATE POLICY "Users can view all users" ON users
-    FOR SELECT USING (true);
+-- Políticas de segurança - PERMITIR TUDO (sistema colaborativo)
+-- Usuários podem fazer tudo na tabela users
+CREATE POLICY "Enable all operations for users" ON users
+    FOR ALL USING (true) WITH CHECK (true);
 
-CREATE POLICY "Users can insert users" ON users
-    FOR INSERT WITH CHECK (true);
+-- Usuários podem fazer tudo na tabela sectors
+CREATE POLICY "Enable all operations for sectors" ON sectors
+    FOR ALL USING (true) WITH CHECK (true);
 
-CREATE POLICY "Users can update users" ON users
-    FOR UPDATE USING (true);
+-- Usuários podem fazer tudo na tabela activities
+CREATE POLICY "Enable all operations for activities" ON activities
+    FOR ALL USING (true) WITH CHECK (true);
 
-CREATE POLICY "Users can delete users" ON users
-    FOR DELETE USING (true);
-
-CREATE POLICY "Users can view all sectors" ON sectors
-    FOR SELECT USING (true);
-
-CREATE POLICY "Users can insert sectors" ON sectors
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Users can update sectors" ON sectors
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Users can delete sectors" ON sectors
-    FOR DELETE USING (true);
-
-CREATE POLICY "Users can view all activities" ON activities
-    FOR SELECT USING (true);
-
-CREATE POLICY "Users can insert activities" ON activities
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Users can update activities" ON activities
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Users can delete activities" ON activities
-    FOR DELETE USING (true);
-
-CREATE POLICY "Users can view all projects" ON projects
-    FOR SELECT USING (true);
-
-CREATE POLICY "Users can insert projects" ON projects
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Users can update projects" ON projects
-    FOR UPDATE USING (true);
-
-CREATE POLICY "Users can delete projects" ON projects
-    FOR DELETE USING (true);
+-- Usuários podem fazer tudo na tabela projects
+CREATE POLICY "Enable all operations for projects" ON projects
+    FOR ALL USING (true) WITH CHECK (true);
