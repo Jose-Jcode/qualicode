@@ -361,18 +361,168 @@ function renderProjects() {
     }
 }
 
-function renderSectorsTables() { 
-    console.log('Rendering sectors tables');
-    // Implementação básica
-    const activitiesContainer = document.getElementById('activitiesContainer');
-    if (activitiesContainer && activities.length > 0) {
-        activitiesContainer.innerHTML = activities.map(activity => `
-            <div class="activity-item">
-                <h5>${activity.description}</h5>
-                <p>Status: ${activity.status}</p>
-            </div>
-        `).join('');
+function renderSectorsTables() {
+    console.log('Rendering sectors tables for activities page');
+    const container = document.getElementById('sectorsTables');
+    
+    if (!container) {
+        console.log('sectorsTables container not found');
+        return;
     }
+    
+    if (sectors.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-building display-4 text-muted"></i>
+                <h5 class="mt-3 text-muted">Nenhum setor cadastrado</h5>
+                <p class="text-muted">Clique na engrenagem e selecione "Cadastrar Setor" para começar.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Renderizar setores como cards expansíveis
+    container.innerHTML = sectors.map(sector => {
+        const sectorActivities = activities.filter(activity => 
+            activity.classification === sector.id
+        );
+        
+        return `
+            <div class="sector-card mb-4" id="sector_${sector.id}">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="toggleSector('${sector.id}')">
+                        <div class="d-flex align-items-center">
+                            <div class="sector-icon me-3">
+                                <i class="bi ${sector.icon || 'bi-building'}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">${sector.name}</h6>
+                                <small class="text-muted">${sectorActivities.length} atividade(s)</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-primary me-2">${sectorActivities.length}</span>
+                            <i class="bi bi-chevron-down" id="sector_icon_${sector.id}"></i>
+                        </div>
+                    </div>
+                    <div class="card-body" id="sector_body_${sector.id}" style="display: none;">
+                        <div class="sector-description mb-3">
+                            <p class="text-muted small mb-2">${sector.description || ''}</p>
+                            <small class="text-muted">Responsável: ${sector.responsible || '-'}</small>
+                        </div>
+                        
+                        ${sectorActivities.length === 0 ? `
+                            <div class="text-center py-3">
+                                <i class="bi bi-inbox display-5 text-muted"></i>
+                                <p class="text-muted mt-2">Nenhuma atividade neste setor</p>
+                                <button class="btn btn-sm btn-primary" onclick="openActivityModalForSector('${sector.id}')">
+                                    <i class="bi bi-plus-lg"></i> Adicionar Atividade
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="activities-list">
+                                ${sectorActivities.map(activity => `
+                                    <div class="activity-item border-bottom pb-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <span class="badge bg-${getStatusColor(activity.status)} me-2">${activity.status}</span>
+                                                    <strong>${activity.description}</strong>
+                                                </div>
+                                                <p class="text-muted small mb-1">${activity.notes || ''}</p>
+                                                <div class="d-flex align-items-center text-muted small">
+                                                    <i class="bi bi-person-circle me-1"></i>
+                                                    <span class="me-3">${activity.responsible}</span>
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    <span>${formatDate(activity.startDate)}</span>
+                                                </div>
+                                            </div>
+                                            <div class="ms-2">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="editActivity('${activity.id}')" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-sm btn-primary" onclick="openActivityModalForSector('${sector.id}')">
+                                        <i class="bi bi-plus-lg"></i> Adicionar Atividade
+                                    </button>
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    console.log('Sectors tables rendered successfully:', sectors.length);
+}
+
+function toggleSector(sectorId) {
+    const body = document.getElementById(`sector_body_${sectorId}`);
+    const icon = document.getElementById(`sector_icon_${sectorId}`);
+    
+    if (body) {
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            if (icon) icon.className = 'bi bi-chevron-up';
+        } else {
+            body.style.display = 'none';
+            if (icon) icon.className = 'bi bi-chevron-down';
+        }
+    }
+}
+
+function expandAllSectors() {
+    sectors.forEach(sector => {
+        const body = document.getElementById(`sector_body_${sector.id}`);
+        const icon = document.getElementById(`sector_icon_${sector.id}`);
+        if (body) body.style.display = 'block';
+        if (icon) icon.className = 'bi bi-chevron-up';
+    });
+    showNotification('Todos os setores expandidos');
+}
+
+function collapseAllSectors() {
+    sectors.forEach(sector => {
+        const body = document.getElementById(`sector_body_${sector.id}`);
+        const icon = document.getElementById(`sector_icon_${sector.id}`);
+        if (body) body.style.display = 'none';
+        if (icon) icon.className = 'bi bi-chevron-down';
+    });
+    showNotification('Todos os setores recolhidos');
+}
+
+function openActivityModalForSector(sectorId) {
+    const sector = sectors.find(s => s.id === sectorId);
+    if (!sector) return;
+    
+    // Abrir modal de atividade com setor pré-selecionado
+    if (typeof openModal === 'function') {
+        openModal();
+        // Pré-selecionar o setor
+        setTimeout(() => {
+            const classificationSelect = document.getElementById('classification');
+            if (classificationSelect) {
+                classificationSelect.value = sectorId;
+            }
+        }, 100);
+    }
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'Pendente': 'warning',
+        'Em Andamento': 'info',
+        'Congelado': 'secondary',
+        'Concluída': 'success',
+        'Cancelada': 'danger'
+    };
+    return colors[status] || 'secondary';
 }
 
 function updateNavigationVisibility() { 
