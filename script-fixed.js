@@ -1305,51 +1305,22 @@ function applyActivityFilters() {
     showNotification(`${filteredActivities.length} atividades encontradas`);
 }
 
-function renderFilteredActivities(filteredActivities) {
-    console.log('Rendering filtered activities:', filteredActivities.length);
-    const container = document.getElementById('activitiesContainer');
-    
-    if (!container) {
-        console.log('Activities container not found');
-        return;
-    }
-    
-    if (filteredActivities.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-5">
-                <i class="bi bi-search display-4 text-muted"></i>
-                <h5 class="mt-3 text-muted">Nenhuma atividade encontrada</h5>
-                <p class="text-muted">Tente ajustar os filtros para ver mais resultados.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = filteredActivities.map(activity => `
-        <div class="activity-item mb-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-title">${activity.description}</h6>
-                            <p class="card-text text-muted small mb-2">${activity.notes || ''}</p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <span class="badge bg-primary">${activity.status}</span>
-                                <span class="badge bg-info">${activity.classification}</span>
-                                <span class="badge bg-secondary">${activity.responsible}</span>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <small class="text-muted d-block">${formatDate(activity.startDate)}</small>
-                            <button class="btn btn-sm btn-outline-primary mt-1" onclick="editActivity('${activity.id}')">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
+function generateSectorId() {
+    if (sectors.length === 0) return 'SECTOR#001';
+    const highestNumber = sectors.reduce((max, sector) => {
+        const match = sector.id.match(/^SECTOR#(\d+)$/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+    }, 0);
+    return `SECTOR#${String(highestNumber + 1).padStart(3, '0')}`;
+}
+
+function generateActivityId() {
+    if (activities.length === 0) return 'ACT#001';
+    const highestNumber = activities.reduce((max, activity) => {
+        const match = activity.id.match(/^ACT#(\d+)$/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+    }, 0);
+    return `ACT#${String(highestNumber + 1).padStart(3, '0')}`;
 }
 
 function clearActivityFilters() {
