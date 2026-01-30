@@ -54,16 +54,22 @@ function initializeApplication() {
             sectorModal = new bootstrap.Modal(document.getElementById('sectorModal'));
             userModal = new bootstrap.Modal(document.getElementById('userModal'));
             
-            // Initialize dropdowns
+            // Initialize dropdowns with explicit configuration
             const filterDropdown = document.getElementById('filterDropdown');
             const settingsDropdown = document.getElementById('settingsDropdown');
             
             if (filterDropdown) {
-                new bootstrap.Dropdown(filterDropdown);
+                new bootstrap.Dropdown(filterDropdown, {
+                    autoClose: 'outside',
+                    reference: 'toggle'
+                });
             }
             
             if (settingsDropdown) {
-                new bootstrap.Dropdown(settingsDropdown);
+                new bootstrap.Dropdown(settingsDropdown, {
+                    autoClose: 'outside',
+                    reference: 'toggle'
+                });
             }
         }
     } catch (error) {
@@ -95,6 +101,18 @@ function initializeApplication() {
         userForm.addEventListener('submit', function(e) {
             e.preventDefault();
             saveUser();
+        });
+    }
+    
+    // Setup filter checkbox listeners
+    const selectAllSectorsFilter = document.getElementById('selectAllSectorsFilter');
+    if (selectAllSectorsFilter) {
+        selectAllSectorsFilter.addEventListener('change', function() {
+            const sectorCheckboxes = document.querySelectorAll('#sectorFilterItems input[type="checkbox"]');
+            sectorCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            renderSectorsTables();
         });
     }
 }
