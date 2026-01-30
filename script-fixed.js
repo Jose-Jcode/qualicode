@@ -703,6 +703,7 @@ function saveSector() {
     // Atualizar interface
     renderSectors();
     populateSectorDropdowns();
+    renderSectorsTables(); // Adicionado para atualizar a tela de atividades
     
     // Fechar modal
     if (sectorModal) {
@@ -826,6 +827,7 @@ function deleteSector(id) {
         localStorage.setItem('sectors', JSON.stringify(sectors));
         renderSectors();
         populateSectorDropdowns();
+        renderSectorsTables(); // Adicionado para atualizar a tela de atividades
         showNotification('Setor excluído com sucesso!');
     }
 }
