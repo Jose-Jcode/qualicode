@@ -14,6 +14,19 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Inserir usuário administrador padrão
+INSERT INTO users (id, name, email, password, role, sector, permissions, active) 
+VALUES (
+    'admin',
+    'Administrador',
+    'admin@qualicode.com',
+    'YWRtaW4xMjM=', -- Base64 para 'admin123'
+    'admin',
+    NULL,
+    '{"activities": true, "dashboard": true, "projects": true, "users": true, "settings": true}',
+    true
+) ON CONFLICT (id) DO NOTHING;
+
 -- Tabela de Setores
 CREATE TABLE IF NOT EXISTS sectors (
     id VARCHAR(50) PRIMARY KEY,
@@ -23,6 +36,12 @@ CREATE TABLE IF NOT EXISTS sectors (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Inserir setores padrão
+INSERT INTO sectors (id, name, description, icon) VALUES
+    ('SEC#1', 'Qualidade', 'Setor responsável pela gestão da qualidade', 'bi-shield-check'),
+    ('SEC#2', 'Planejamento', 'Setor responsável pelo planejamento estratégico', 'bi-clipboard-data')
+ON CONFLICT (id) DO NOTHING;
 
 -- Tabela de Atividades
 CREATE TABLE IF NOT EXISTS activities (
