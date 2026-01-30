@@ -2,17 +2,50 @@
 const SUPABASE_URL = 'https://gqcmjiikptcjtojtsvjg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxY21qaWlrcHRjanRvanRzdmpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODM0MzQsImV4cCI6MjA4NTE1OTQzNH0.k0Ox-LVACHWglB-EPPDwnrEgg4LiNm5wJWkf9NoIeDU';
 
-// Inicializar Supabase - SEM DECLARAÇÃO DUPLICADA
+// Inicializar Supabase - FORÇAR INICIALIZAÇÃO
 let supabaseClient;
+
+console.log('Initializing Supabase client...');
+console.log('Supabase library available:', typeof window.supabase !== 'undefined');
 
 try {
     if (typeof window.supabase !== 'undefined') {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log('Supabase client initialized successfully');
+        console.log('Supabase client:', supabaseClient);
     } else {
-        console.error('Supabase library not loaded. Using fallback.');
-        // Cliente mock já criado no HTML
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.error('Supabase library not loaded. Creating fallback...');
+        // Criar cliente mock simples
+        supabaseClient = {
+            from: (table) => ({
+                select: () => Promise.resolve({ 
+                    data: [
+                        {
+                            id: 'admin',
+                            name: 'Administrador',
+                            email: 'admin@qualicode.com',
+                            password: btoa('admin123'),
+                            role: 'admin',
+                            sector: null,
+                            permissions: {
+                                activities: true,
+                                dashboard: true,
+                                projects: true,
+                                users: true,
+                                settings: true
+                            },
+                            active: true,
+                            created_at: new Date().toISOString()
+                        }
+                    ], 
+                    error: null 
+                }),
+                insert: () => Promise.resolve({ data: null, error: null }),
+                upsert: () => Promise.resolve({ data: null, error: null }),
+                delete: () => Promise.resolve({ data: null, error: null })
+            })
+        };
+        console.log('Fallback Supabase client created');
     }
 } catch (error) {
     console.error('Error initializing Supabase:', error);
@@ -29,6 +62,8 @@ try {
 
 // Alias global para compatibilidade
 window.supabase = supabaseClient;
+
+console.log('Final Supabase client:', supabaseClient);
 
 // Variáveis globais
 let currentUser = null;
