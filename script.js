@@ -33,6 +33,22 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Modals initialization skipped:', error.message);
         }
         
+        // Initialize dropdowns manually
+        try {
+            const filterDropdown = document.getElementById('filterDropdown');
+            const settingsDropdown = document.getElementById('settingsDropdown');
+            
+            if (filterDropdown && typeof bootstrap !== 'undefined') {
+                new bootstrap.Dropdown(filterDropdown);
+            }
+            
+            if (settingsDropdown && typeof bootstrap !== 'undefined') {
+                new bootstrap.Dropdown(settingsDropdown);
+            }
+        } catch (error) {
+            console.log('Dropdowns initialization skipped:', error.message);
+        }
+        
         // Load data
         loadSectors();
         loadActivities();
@@ -60,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveUser();
             });
         }
-    }, 500); // Wait 500ms for scripts to load
+    }, 1000); // Increased wait time to 1000ms
     
     // Initialize UI if authenticated
     if (currentUser) {
