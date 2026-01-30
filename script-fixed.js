@@ -1047,6 +1047,147 @@ document.getElementById('profileImageInput').addEventListener('change', function
     
     reader.readAsDataURL(file);
 });
+
+function openProjectModal() {
+    console.log('Opening project modal');
+    
+    if (!projectModal) {
+        projectModal = new bootstrap.Modal(document.getElementById('projectModal'));
+    }
+    
+    currentProjectEditId = null;
+    document.getElementById('projectModalTitle').textContent = 'Novo Projeto';
+    document.getElementById('projectForm').reset();
+    document.getElementById('projectId').value = '';
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('projectStartDate').value = today;
+    
+    projectModal.show();
+}
+
+function editProject(id) {
+    console.log('Editing project:', id);
+    const project = projects.find(p => p.id === id);
+    if (!project) return;
+    
+    currentProjectEditId = id;
+    document.getElementById('projectModalTitle').textContent = 'Editar Projeto';
+    document.getElementById('projectId').value = project.id;
+    document.getElementById('projectName').value = project.name;
+    document.getElementById('projectDescription').value = project.description;
+    document.getElementById('projectResponsible').value = project.responsible;
+    document.getElementById('projectStartDate').value = project.startDate;
+    document.getElementById('projectEndDate').value = project.endDate;
+    document.getElementById('projectStatus').value = project.status;
+    
+    projectModal.show();
+}
+
+function saveProject() {
+    console.log('Saving project...');
+    const form = document.getElementById('projectForm');
+    if (!form) {
+        console.error('Project form not found');
+        showNotification('Formulário não encontrado', 'error');
+        return;
+    }
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const projectId = document.getElementById('projectId').value;
+    const projectData = {
+        name: document.getElementById('projectName').value.trim(),
+        description: document.getElementById('projectDescription').value.trim(),
+        responsible: document.getElementById('projectResponsible').value.trim(),
+        startDate: document.getElementById('projectStartDate').value,
+        endDate: document.getElementById('projectEndDate').value,
+        status: document.getElementById('projectStatus').value,
+        created_at: new Date().toISOString()
+    };
+    
+    if (!projectId) {
+        projectData.id = generateProjectId();
+        projects.push(projectData);
+        console.log('New project added:', projectData);
+    } else {
+        const index = projects.findIndex(p => p.id === projectId);
+        if (index !== -1) {
+            projects[index] = { ...projects[index], ...projectData };
+            console.log('Project updated:', projectData);
+        }
+    }
+    
+    // Salvar no localStorage
+    localStorage.setItem('projects', JSON.stringify(projects));
+    console.log('Projects saved to localStorage:', projects.length);
+    
+    // Tentar salvar no Supabase
+    if (typeof supabaseClient.from === 'function') {
+        supabaseClient.from('projects').upsert(projectData).then(({ error }) => {
+            if (error) {
+                console.error('Erro ao salvar projeto no Supabase:', error);
+            } else {
+                console.log('Projeto salvo no Supabase com sucesso');
+            }
+        });
+    }
+    
+    // Atualizar interface
+    renderProjects();
+    
+    // Fechar modal
+    if (projectModal) {
+        projectModal.hide();
+    }
+    
+    showNotification(projectId ? 'Projeto atualizado com sucesso!' : 'Projeto criado com sucesso!');
+    console.log('Project save completed successfully');
+}
+
+function generateProjectId() {
+    if (projects.length === 0) return 'PROJ#001';
+    const highestNumber = projects.reduce((max, project) => {
+        const match = project.id.match(/^PROJ#(\d+)$/);
+        return match ? Math.max(max, parseInt(match[1])) : max;
+    }, 0);
+    return `PROJ#${String(highestNumber + 1).padStart(3, '0')}`;
+}
+
+function renderProjects() {
+    console.log('Rendering projects');
+    const tbody = document.getElementById('projectsTableBody');
+    const emptyState = document.getElementById('projectsEmptyState');
+    
+    if (!tbody) {
+        console.log('Projects table body not found');
+        return;
+    }
+    
+    if (projects.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+    
+    if (emptyState) emptyState.style.display = 'none';
+    tbody.innerHTML = projects.map(project => `
+        <tr>
+            <td><span class="text-id">${project.id}</span></td>
+            <td>${project.name}</td>
+            <td>${project.status}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editProject('${project.id}')">Editar</button>
+            </td>
+        </tr>
+    `).join('');
+    
+    console.log('Projects rendered successfully:', projects.length);
+}
+
 function toggleFilterDropdown() {
     console.log('Toggling filter dropdown');
     const dropdown = document.querySelector('#filterDropdown + .dropdown-menu');
