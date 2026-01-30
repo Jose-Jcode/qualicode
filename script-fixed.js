@@ -213,11 +213,32 @@ function login() {
         console.log('Login attempt:', email);
         console.log('Available users:', users.length);
         
+        // Se não tiver usuários carregados, tentar carregar do Supabase
+        if (users.length === 0) {
+            console.log('No users loaded, trying to load from Supabase...');
+            if (typeof supabaseClient.from === 'function') {
+                supabaseClient.from('users').select('*').then(({ data, error }) => {
+                    if (error) {
+                        console.error('Erro ao carregar usuários:', error);
+                        showNotification('Erro ao carregar usuários', 'error');
+                        return;
+                    } else if (data && data.length > 0) {
+                        users = data;
+                        console.log('Users loaded from Supabase:', users.length);
+                        // Tentar login novamente após carregar
+                        setTimeout(() => login(), 500);
+                        return;
+                    }
+                });
+            }
+        }
+        
         // Find user by email
         const user = users.find(u => u.email === email && u.active);
         
         if (!user) {
             console.log('User not found:', email);
+            console.log('Available users:', users.map(u => ({ email: u.email, active: u.active })));
             showNotification('Email ou senha incorretos.', 'error');
             return;
         }
@@ -249,11 +270,9 @@ function login() {
         if (rememberMe) {
             localStorage.setItem('userSession', JSON.stringify(sessionData));
             localStorage.setItem('rememberedEmail', email);
-            localStorage.setItem('rememberedPassword', password);
         } else {
             sessionStorage.setItem('userSession', JSON.stringify(sessionData));
             localStorage.removeItem('rememberedEmail');
-            localStorage.removeItem('rememberedPassword');
         }
         
         showMainApp();
